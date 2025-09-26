@@ -1,19 +1,20 @@
 var renderer, scene, camera;
 var cameraControls;
-var movingCube; // <-- Añadimos esta línea
+var movingCube; // Coche
 var heightMapImage = null;   // La imagen del heightmap
 var heightMapData = null;    // Datos de píxeles
 var heightMapWidth = 0;
 var heightMapHeight = 0;
-var displacementScale = 40;  // ¡Importante! Debe coincidir con el material
-var carCameraOffset = new THREE.Vector3(1, 3, 4);
-var keyMaps = {};
-var groundMesh;
-var wheel1, wheel2, wheel3, wheel4;
-var bidones = [];
-var barraTrasera;
-var barraDiagonal;
-var volante;
+var displacementScale = 40;
+var carCameraOffset = new THREE.Vector3(1, 3, 4); // Cámara detrás del coche
+var keyMaps = {}; // Mapa de teclas presionadas
+var groundMesh; // Terreno
+var wheel1, wheel2, wheel3, wheel4; // Ruedas del coche
+var bidones = []; // Bidones de gasolina en la escena
+var barraTrasera; // Barra trasera del coche
+var barraDiagonal; 
+var volante; // Volante del coche
+var loader;
 
 // 1-inicializa 
 init();
@@ -22,8 +23,12 @@ loadScene();
 // 3-renderiza
 render();
 
+const clock = new THREE.Clock();
+
 function init() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // suaviza las sombras
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new THREE.Color(0x87CEEB)); // color cielo
   document.getElementById('container').appendChild(renderer.domElement);
@@ -38,13 +43,27 @@ function init() {
   //cameraControls.target.set(0, 0, 0);
 
   // luz direccional
-  const dirLight = new THREE.DirectionalLight(0xfff2cc, 1.0);
-  dirLight.castShadow = true;
-  dirLight.position.set(50, 100, 50);
-  scene.add(dirLight);
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(200, 400, 200);
+  light.castShadow = true;
 
-  // luz ambiente tenue y cálida
-  scene.add(new THREE.AmbientLight(0xffddaa, 0.4));
+  // Resolución del mapa de sombras
+  light.shadow.mapSize.width = 2048;
+  light.shadow.mapSize.height = 2048;
+
+  // Ajustar el área de proyección de la cámara de sombras
+  const d = 500; 
+  light.shadow.camera.left = -d;
+  light.shadow.camera.right = d;
+  light.shadow.camera.top = d;
+  light.shadow.camera.bottom = -d;
+
+  light.shadow.camera.near = 1;
+  light.shadow.camera.far = 1000;
+    scene.add(light);
+
+    // Luz ambiental suave
+    scene.add(new THREE.AmbientLight(0x404040, 0.6));
 
   window.addEventListener('resize', updateAspectRatio);
 }
@@ -67,21 +86,36 @@ function loadScene() {
 
     heightMapData = ctx.getImageData(0, 0, img.width, img.height).data;
 
-    for (let i = 0; i < 30; i++) {
-      let bidon = new THREE.Mesh(
-        new THREE.CylinderGeometry(1, 1, 2, 12),
-        new THREE.MeshStandardMaterial({ color: 0xaa3333, metalness: 0.3, roughness: 0.8 })
-      );
+    // Cargar el modelo del barril una sola vez
+    const loader = new THREE.GLTFLoader();
+    loader.load("../models/oil_barrel_low-poly/scene.gltf", function (gltf) {
+      const baseModel = gltf.scene;
+      baseModel.scale.set(3, 3, 3);
 
-      let x = (Math.random() - 0.5) * 600; // dentro del terreno
-      let z = (Math.random() - 0.5) * 600;
-      let y = getHeightAt(x, z);
+      baseModel.traverse(function (node) {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+      });
 
-      bidon.position.set(x, y + 0.5, z); // apoyado en el terreno
-      bidon.userData = {name: 'bidon'}
-      bidones.push(bidon);
-      scene.add(bidon);
-    }
+      // Crear múltiples copias
+      for (let i = 0; i < 30; i++) {
+        let x = (Math.random() - 0.5) * 600;
+        let z = (Math.random() - 0.5) * 600;
+        let y = getHeightAt(x, z);
+
+        // Clonar el modelo en vez de volverlo a cargar
+        let modelo = baseModel.clone(true);
+
+        // Ajustar posición y rotación
+        modelo.position.set(x, y + 0.5, z);
+        modelo.userData = { name: "bidon" };
+
+        bidones.push(modelo);
+        scene.add(modelo);
+      }
+    });
 
     console.log("Heightmap cargado y listo para lectura");
   };
@@ -107,6 +141,7 @@ function loadScene() {
 
   groundMesh = new THREE.Mesh(floorGeometry, groundMat);
   groundMesh.rotation.x = -Math.PI / 2;
+  groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
   movingCube = new THREE.Object3D(); // contenedor vacío
@@ -146,6 +181,18 @@ function loadScene() {
   wheel4.rotation.z = Math.PI / 2;
   wheel4.position.set(-3, 1, -2);
   movingCube.add(wheel4);
+
+  wheel1.castShadow = true;
+  wheel1.receiveShadow = true;
+
+  wheel2.castShadow = true;
+  wheel2.receiveShadow = true;
+
+  wheel3.castShadow = true;
+  wheel3.receiveShadow = true;
+
+  wheel4.castShadow = true;
+  wheel4.receiveShadow = true;
 
   movingCube.position.set(0, 10, 0)
 
@@ -202,7 +249,7 @@ function getHeightAt(x, z) {
   let u = (x + 400) / 800;  // mapea -100..100 → 0..1
   let v = (z + 400) / 800;  // igual para z
 
-  // Convertimos UV a píxeles
+  // Convertimos UV a coordenadas de píxel en la imagen
   let pixelX = Math.floor(u * heightMapWidth);
   let pixelY = Math.floor(v * heightMapHeight);
 
