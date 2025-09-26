@@ -1,0 +1,431 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        35.39794921875,
+        35.39789962768555,
+        50.032047271728516
+      ],
+      "min": [
+        -35.39794921875,
+        -35.39789962768555,
+        -50.03205108642578
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 10584,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9666076302528381,
+        0.9671027660369873,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -0.9918232560157776,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 7056,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 14112,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 21168,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 28224,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 35280,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 42336,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 49392,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 56448,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 63504,
+      "componentType": 5126,
+      "count": 882,
+      "max": [
+        0.9905821681022644,
+        0.9913486242294312
+      ],
+      "min": [
+        0.021317481994628906,
+        0.005479061044752598
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 3030,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "MaX3Dd (https://sketchfab.com/MaX3Dd)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/oil-barrel-low-poly-46880de2a075441a8133bb22ca34fe23",
+      "title": "Oil Barrel Low-poly"
+    },
+    "generator": "Sketchfab-16.23.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 12120,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 70560,
+      "byteOffset": 12120,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 21168,
+      "byteOffset": 82680,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14112,
+      "byteOffset": 103848,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 117960,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/Oil_barrel_baseColor.png"
+    },
+    {
+      "uri": "textures/Oil_barrel_metallicRoughness.png"
+    },
+    {
+      "uri": "textures/Oil_barrel_normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Oil_barrel",
+      "normalTexture": {
+        "index": 2
+      },
+      "occlusionTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Oil_barrel_Oil_barrel_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4,
+            "TEXCOORD_2": 5,
+            "TEXCOORD_3": 6,
+            "TEXCOORD_4": 7,
+            "TEXCOORD_5": 8,
+            "TEXCOORD_6": 9,
+            "TEXCOORD_7": 10,
+            "TEXCOORD_8": 11,
+            "TEXCOORD_9": 12
+          },
+          "indices": 13,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Oil_barrel.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        50.0838508605957,
+        -4.9591064453125e-05,
+        1.0
+      ],
+      "name": "Oil_barrel"
+    },
+    {
+      "mesh": 0,
+      "name": "Oil_barrel_Oil_barrel_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ]
+}

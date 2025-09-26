@@ -1,0 +1,11 @@
+Model Information:
+* title:	Oil Barrel Low-poly
+* source:	https://sketchfab.com/3d-models/oil-barrel-low-poly-46880de2a075441a8133bb22ca34fe23
+* author:	MaX3Dd (https://sketchfab.com/MaX3Dd)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Oil Barrel Low-poly" (https://sketchfab.com/3d-models/oil-barrel-low-poly-46880de2a075441a8133bb22ca34fe23) by MaX3Dd (https://sketchfab.com/MaX3Dd) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
