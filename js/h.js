@@ -15,6 +15,7 @@ var barraTrasera; // Barra trasera del coche
 var barraDiagonal; 
 var volante; // Volante del coche
 var loader;
+var stats;
 
 // 1-inicializa 
 init();
@@ -41,6 +42,14 @@ function init() {
 
   //cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
   //cameraControls.target.set(0, 0, 0);
+
+  // Añadir stats
+  stats = new Stats();
+  stats.setMode( 0 );					// Muestra FPS
+	stats.domElement.style.position = 'absolute';		// Abajo izquierda
+	stats.domElement.style.bottom = '0px';
+	stats.domElement.style.left = '0px';
+	document.getElementById( 'container' ).appendChild( stats.domElement );
 
   // luz direccional
   const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -438,6 +447,7 @@ function update() {
 
   updateBarraEnmedio(barraEnmedio1, wheel1, wheel3);
   updateBarraEnmedio(barraEnmedio2, wheel2, wheel4);
+  stats.update();
 
 }
 
