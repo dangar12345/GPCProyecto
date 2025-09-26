@@ -1,2 +1,0 @@
-# GPCProyecto
-# GPCProyecto
