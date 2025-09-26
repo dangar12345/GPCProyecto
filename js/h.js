@@ -191,21 +191,7 @@ function loadScene() {
   wheel4.position.set(-3, 1, -2);
   movingCube.add(wheel4);
 
-  wheel1.castShadow = true;
-  wheel1.receiveShadow = true;
-
-  wheel2.castShadow = true;
-  wheel2.receiveShadow = true;
-
-  wheel3.castShadow = true;
-  wheel3.receiveShadow = true;
-
-  wheel4.castShadow = true;
-  wheel4.receiveShadow = true;
-
   movingCube.position.set(0, 10, 0)
-
-  // Después de crear las ruedas (wheel1..wheel4)
 
 // --- Barra delantera ---
 
