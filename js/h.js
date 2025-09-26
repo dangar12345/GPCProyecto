@@ -119,11 +119,11 @@ function loadScene() {
 
     console.log("Heightmap cargado y listo para lectura");
   };
-  img.src = '/images/h.jpg';
+  img.src = '/GPCProyecto/images/h.jpg';
 
   // Cargar heightmap
-  let disMap = new THREE.TextureLoader().setPath('/images/').load("h.jpg");
-  let sandTex = new THREE.TextureLoader().setPath('/images/').load("sand.jpg");
+  let disMap = new THREE.TextureLoader().setPath('/GPCProyecto/images/').load("h.jpg");
+  let sandTex = new THREE.TextureLoader().setPath('/GPCProyecto/images/').load("sand.jpg");
 
 
   disMap.wrapS = disMap.wrapT = THREE.RepeatWrapping;
