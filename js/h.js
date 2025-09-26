@@ -16,6 +16,9 @@ var barraDiagonal;
 var volante; // Volante del coche
 var loader;
 var stats;
+var gasolina = 100; // Nivel de gasolina
+var porcetajePorBidon = 3; // Cada bidón da un 3% de gasolina
+var cactus = []
 
 // 1-inicializa 
 init();
@@ -79,7 +82,7 @@ function init() {
 
 function loadScene() {
   // NOTE: https://www.youtube.com/watch?v=wULUAhckH9w
-  var floorGeometry = new THREE.PlaneGeometry(800, 800, 600, 600);
+  var floorGeometry = new THREE.PlaneGeometry(400, 400, 100, 100);
 
   let img = new Image();
   img.onload = function() {
@@ -110,8 +113,8 @@ function loadScene() {
 
       // Crear múltiples copias
       for (let i = 0; i < 30; i++) {
-        let x = (Math.random() - 0.5) * 600;
-        let z = (Math.random() - 0.5) * 600;
+        let x = (Math.random() - 0.5) * 300;
+        let z = (Math.random() - 0.5) * 300;
         let y = getHeightAt(x, z);
 
         // Clonar el modelo en vez de volverlo a cargar
@@ -125,6 +128,19 @@ function loadScene() {
         scene.add(modelo);
       }
     });
+
+    for (let i = 0; i < 20; i++) {
+      let x = (Math.random() - 0.5) * 300;
+      let z = (Math.random() - 0.5) * 300;
+      let y = getHeightAt(x, z);
+
+      const geometry = new THREE.ConeGeometry(1, 3, 8);
+      const material = new THREE.MeshStandardMaterial({ color: 0x228B22, metalness: 0.2, roughness: 0.8 });
+      const cactusMesh = new THREE.Mesh(geometry, material);
+      cactusMesh.position.set(x, y + 1.5, z);
+      scene.add(cactusMesh);
+      cactus.push(cactusMesh);
+    }
 
     console.log("Heightmap cargado y listo para lectura");
   };
@@ -238,11 +254,11 @@ function updateAspectRatio() {
 
 function getHeightAt(x, z) {
   if (!heightMapData) return 0; // aún no cargado
-
+  const terrainSize = 400; // tamaño del plano en unidades
   // El plano va de -100 a 100 en X y Z (porque es 200x200 centrado en 0)
   // Convertimos x,z a coordenadas UV [0, 1]
-  let u = (x + 400) / 800;  // mapea -100..100 → 0..1
-  let v = (z + 400) / 800;  // igual para z
+  let u = (x + terrainSize/2) / terrainSize;  // mapea -100..100 → 0..1
+  let v = (z + terrainSize/2) / terrainSize;  // igual para z
 
   // Convertimos UV a coordenadas de píxel en la imagen
   let pixelX = Math.floor(u * heightMapWidth);
@@ -377,6 +393,68 @@ function updateBarraEnmedio(barra, rueda1, rueda2) {
   barra.rotation.set(anguloX, 0, 0);
 }
 
+function displayGasolina(){
+  let gasolinaDisplay = document.getElementById('gasolinaDisplay');
+    if (!gasolinaDisplay) {
+      gasolinaDisplay = document.createElement('div');
+      gasolinaDisplay.id = 'gasolinaDisplay';
+      gasolinaDisplay.style.position = 'absolute';
+      gasolinaDisplay.style.top = '20px';
+      gasolinaDisplay.style.right = '20px';
+      gasolinaDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      gasolinaDisplay.style.color = 'white';
+      gasolinaDisplay.style.padding = '10px';
+      gasolinaDisplay.style.borderRadius = '5px';
+      gasolinaDisplay.style.fontFamily = 'Arial, sans-serif';
+      document.body.appendChild(gasolinaDisplay);
+    }
+}
+
+function updatePercentajeGasolina(element) {
+  // Actualizar el nivel de gasolina y cambiar color según nivel
+  const gasolinaPorcentaje = Math.round(gasolina);
+  let color = 'green';
+  if (gasolinaPorcentaje < 30) color = 'red';
+  else if (gasolinaPorcentaje < 70) color = 'orange';
+
+  element.innerHTML = `
+    <div style="font-weight: bold; margin-bottom: 5px;">Gasolina</div>
+    <div style="width: 100px; height: 20px; background-color: #333; border-radius: 10px; overflow: hidden;">
+      <div style="width: ${gasolinaPorcentaje}%; height: 100%; background-color: ${color};"></div>
+    </div>
+    <div style="text-align: center;">${gasolinaPorcentaje}%</div>
+  `;
+}
+
+function displayWarning() {
+ // Actualizar el mensaje si no hay gasolina
+  if (gasolina <= 0) {
+    let gameOverMsg = document.getElementById('gameOverMsg');
+    if (!gameOverMsg) {
+      gameOverMsg = document.createElement('div');
+      gameOverMsg.id = 'gameOverMsg';
+      gameOverMsg.style.position = 'absolute';
+      gameOverMsg.style.top = '50%';
+      gameOverMsg.style.left = '50%';
+      gameOverMsg.style.transform = 'translate(-50%, -50%)';
+      gameOverMsg.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+      gameOverMsg.style.color = 'white';
+      gameOverMsg.style.padding = '20px';
+      gameOverMsg.style.borderRadius = '10px';
+      gameOverMsg.style.fontSize = '24px';
+      gameOverMsg.style.fontFamily = 'Arial, sans-serif';
+      gameOverMsg.style.textAlign = 'center';
+      gameOverMsg.innerHTML = 'Sin gasolina!<br>Recoge bidones para continuar.';
+      document.body.appendChild(gameOverMsg);
+    }
+  } else {
+    const gameOverMsg = document.getElementById('gameOverMsg');
+    if (gameOverMsg) {
+      gameOverMsg.remove();
+    }
+  }
+}
+
 function update() {
   moveCar(0.016); // asumiendo ~60fps, delta ~16ms
 
@@ -404,18 +482,44 @@ function update() {
     wheel.position.y = localPos.y;
   });
 
+  gasolina -= 0.05; // Consumir gasolina lentamente
+  gasolina = Math.max(0, gasolina); // No puede ser negativa
+
   // Comprobar intersecciones con el resto de bidones
   // NOTE: https://threejs.org/docs/index.html#api/en/math/Box3.intersectsBox
   // NOTE: https://stackoverflow.com/questions/66032362/using-intersect-intersectsbox-for-object-collision-threejs
   let carBox = new THREE.Box3().setFromObject(movingCube);
 
-  bidones.forEach((bidon) => {
+  // Use filter to create a new array without the collected bidones
+  bidones = bidones.filter((bidon) => {
     let bidonBox = new THREE.Box3().setFromObject(bidon);
 
     if (carBox.intersectsBox(bidonBox)) {
       scene.remove(bidon);
+      gasolina += porcetajePorBidon;
+      gasolina = Math.min(100, gasolina);
+      return false;
     }
+    return true;
   });
+
+  cactus = cactus.filter((c) => {
+    let cactusBox = new THREE.Box3().setFromObject(c);
+    if (carBox.intersectsBox(cactusBox)) {
+      gasolina -= 10;
+      gasolina = Math.max(0, gasolina);
+      scene.remove(c);
+      return false;
+    }
+    return true;
+  });
+
+  displayGasolina();
+  let gasolinaDisplay = document.getElementById('gasolinaDisplay');
+
+  updatePercentajeGasolina(gasolinaDisplay);
+
+  displayWarning();
 
   // --- CÁMARA DETRÁS DEL COCHE ---
   let offset = carCameraOffset.clone();
