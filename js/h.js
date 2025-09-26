@@ -88,7 +88,7 @@ function loadScene() {
 
     // Cargar el modelo del barril una sola vez
     const loader = new THREE.GLTFLoader();
-    loader.load("../models/oil_barrel_low-poly/scene.gltf", function (gltf) {
+    loader.load("/models/oil_barrel_low-poly/scene.gltf", function (gltf) {
       const baseModel = gltf.scene;
       baseModel.scale.set(3, 3, 3);
 
@@ -119,11 +119,11 @@ function loadScene() {
 
     console.log("Heightmap cargado y listo para lectura");
   };
-  img.src = '../images/h.jpg';
+  img.src = '/images/h.jpg';
 
   // Cargar heightmap
-  let disMap = new THREE.TextureLoader().setPath('../images/').load("h.jpg");
-  let sandTex = new THREE.TextureLoader().setPath('../images/').load("sand.jpg");
+  let disMap = new THREE.TextureLoader().setPath('/images/').load("h.jpg");
+  let sandTex = new THREE.TextureLoader().setPath('/images/').load("sand.jpg");
 
 
   disMap.wrapS = disMap.wrapT = THREE.RepeatWrapping;
