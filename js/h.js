@@ -6,11 +6,12 @@ var heightMapData = null;    // Datos de píxeles
 var heightMapWidth = 0;
 var heightMapHeight = 0;
 var displacementScale = 40;
-var carCameraOffset = new THREE.Vector3(1, 3, 4); // Cámara detrás del coche
+var carCameraOffset = new THREE.Vector3(0, 3, 4); // Cámara detrás del coche
 var keyMaps = {}; // Mapa de teclas presionadas
 var groundMesh; // Terreno
 var wheel1, wheel2, wheel3, wheel4; // Ruedas del coche
 var bidones = []; // Bidones de gasolina en la escena
+var total_bidones = 20
 var barraTrasera; // Barra trasera del coche
 var barraDiagonal; 
 var volante; // Volante del coche
@@ -72,10 +73,10 @@ function init() {
 
   light.shadow.camera.near = 1;
   light.shadow.camera.far = 1000;
-    scene.add(light);
+  scene.add(light);
 
-    // Luz ambiental suave
-    scene.add(new THREE.AmbientLight(0x404040, 0.6));
+  // Luz ambiental suave
+  scene.add(new THREE.AmbientLight(0x404040, 0.6));
 
   window.addEventListener('resize', updateAspectRatio);
 }
@@ -112,7 +113,7 @@ function loadScene() {
       });
 
       // Crear múltiples copias
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < total_bidones; i++) {
         let x = (Math.random() - 0.5) * 300;
         let z = (Math.random() - 0.5) * 300;
         let y = getHeightAt(x, z);
@@ -304,7 +305,11 @@ function moveCar(delta) {
     targetVelocity = -maxSpeed; // negative Z is forward
     if (keyMaps['shift']) {
       targetVelocity = -maxSpeed * 2; // boost with shift
+      gasolina -= 0.03; // Consumir gasolina lentamente
+    } else {
+        gasolina -= 0.03; // Consumir gasolina lentamente
     }
+    gasolina = Math.max(0, gasolina); // No puede ser negativa
   } else if (keyMaps['s'] || keyMaps['arrowdown']) {
     targetVelocity = maxSpeed; // positive Z is backward
   }
@@ -482,9 +487,6 @@ function update() {
     wheel.position.y = localPos.y;
   });
 
-  gasolina -= 0.05; // Consumir gasolina lentamente
-  gasolina = Math.max(0, gasolina); // No puede ser negativa
-
   // Comprobar intersecciones con el resto de bidones
   // NOTE: https://threejs.org/docs/index.html#api/en/math/Box3.intersectsBox
   // NOTE: https://stackoverflow.com/questions/66032362/using-intersect-intersectsbox-for-object-collision-threejs
@@ -514,8 +516,12 @@ function update() {
     return true;
   });
 
-  displayGasolina();
+  //displayGasolina();
   let gasolinaDisplay = document.getElementById('gasolinaDisplay');
+  let bidonesRecogidos = document.getElementById('conteoBidones');
+  if (bidonesRecogidos) {
+    bidonesRecogidos.innerHTML = `Bidones restantes: ${bidones.length}/${total_bidones}`;
+  }
 
   updatePercentajeGasolina(gasolinaDisplay);
 
