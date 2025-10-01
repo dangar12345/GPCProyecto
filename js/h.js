@@ -20,6 +20,7 @@ var stats;
 var gasolina = 100; // Nivel de gasolina
 var porcetajePorBidon = 3; // Cada bidón da un 3% de gasolina
 var cactus = []
+var minimapa;
 
 // 1-inicializa 
 init();
@@ -54,6 +55,14 @@ function init() {
 	stats.domElement.style.bottom = '0px';
 	stats.domElement.style.left = '0px';
 	document.getElementById( 'container' ).appendChild( stats.domElement );
+
+  const zoom = 50;
+  minimapa = new THREE.OrthographicCamera(-zoom, zoom, zoom, -zoom, 0.1, 1000);
+
+  minimapa.position.set(0, 400, 0); // Vista aérea
+  minimapa.lookAt(0, 0, 0);
+  minimapa.up.set(0, 0, -1); // para que adelante del coche apunte hacia arriba
+
 
   // luz direccional
   const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -101,7 +110,7 @@ function loadScene() {
 
     // Cargar el modelo del barril una sola vez
     const loader = new THREE.GLTFLoader();
-    loader.load("/GPCProyecto/models/oil_barrel_low-poly/scene.gltf", function (gltf) {
+    loader.load("/models/oil_barrel_low-poly/scene.gltf", function (gltf) {
       const baseModel = gltf.scene;
       baseModel.scale.set(3, 3, 3);
 
@@ -145,11 +154,11 @@ function loadScene() {
 
     console.log("Heightmap cargado y listo para lectura");
   };
-  img.src = '/GPCProyecto/images/h.jpg';
+  img.src = '/images/h.jpg';
 
   // Cargar heightmap
-  let disMap = new THREE.TextureLoader().setPath('/GPCProyecto/images/').load("h.jpg");
-  let sandTex = new THREE.TextureLoader().setPath('/GPCProyecto/images/').load("sand.jpg");
+  let disMap = new THREE.TextureLoader().setPath('/images/').load("h.jpg");
+  let sandTex = new THREE.TextureLoader().setPath('/images/').load("sand.jpg");
 
 
   disMap.wrapS = disMap.wrapT = THREE.RepeatWrapping;
@@ -176,7 +185,7 @@ function loadScene() {
   scene.add(movingCube);
 
   wheel1 = new THREE.Mesh(
-    new THREE.CylinderGeometry(0, 0, 0, 24),
+    new THREE.CylinderGeometry(1, 1, 0.5, 24),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
   );
   wheel1.rotation.z = Math.PI / 2;
@@ -184,7 +193,7 @@ function loadScene() {
   movingCube.add(wheel1);
 
   wheel2 = new THREE.Mesh(
-    new THREE.CylinderGeometry(0, 0, 0, 24),
+    new THREE.CylinderGeometry(1, 1, 0.5, 24),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
   );
   wheel2.rotation.z = Math.PI / 2;
@@ -251,6 +260,13 @@ function updateAspectRatio() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+}
+
+function updateMinimap() {
+  minimapa.position.x = movingCube.position.x;
+  minimapa.position.z = movingCube.position.z;
+  minimapa.position.y = 100; // altura
+  minimapa.lookAt(movingCube.position.x, 0, movingCube.position.z);
 }
 
 function getHeightAt(x, z) {
@@ -460,6 +476,15 @@ function displayWarning() {
   }
 }
 
+document.addEventListener("wheel", (event) => {
+  if (event.deltaY < 0) {
+    camera.fov = Math.max(30, camera.fov - 2); 
+  } else {
+    camera.fov = Math.min(90, camera.fov + 2);
+  }
+  camera.updateProjectionMatrix();
+});
+
 function update() {
   moveCar(0.016); // asumiendo ~60fps, delta ~16ms
 
@@ -544,12 +569,31 @@ function update() {
   updateBarraEnmedio(barraEnmedio1, wheel1, wheel3);
   updateBarraEnmedio(barraEnmedio2, wheel2, wheel4);
   stats.update();
-
+  updateMinimap();
 }
 
 
 function render() {
   requestAnimationFrame(render);
   update();
+  // --- Render principal ---
+  renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+  renderer.setScissorTest(false);
   renderer.render(scene, camera);
+
+  // --- Render minimapa ---
+  const padding = 20; // margen desde esquina
+  const minimapSize = 200; // tamaño en píxeles
+
+  renderer.setViewport(padding, window.innerHeight - minimapSize - padding, minimapSize, minimapSize);
+  renderer.setScissor(padding, window.innerHeight - minimapSize - padding, minimapSize, minimapSize);
+  renderer.setScissorTest(true);
+
+  // Fondo semitransparente para el minimapa
+  renderer.setClearColor(0x000000, 0.5); 
+  renderer.clearDepth(); // solo limpiar profundidad para no borrar el render principal
+
+  renderer.render(scene, minimapa);
+
+  renderer.setScissorTest(false);
 }
