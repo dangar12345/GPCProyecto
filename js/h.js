@@ -143,12 +143,53 @@ function loadScene() {
       let x = (Math.random() - 0.5) * 300;
       let z = (Math.random() - 0.5) * 300;
       let y = getHeightAt(x, z);
+      y -= 0.2 // para que se hunda un poco en el suelo
 
-      const geometry = new THREE.ConeGeometry(1, 3, 8);
-      const material = new THREE.MeshStandardMaterial({ color: 0x228B22, metalness: 0.2, roughness: 0.8 });
-      const cactusMesh = new THREE.Mesh(geometry, material);
-      cactusMesh.position.set(x, y + 1.5, z);
-      scene.add(cactusMesh);
+      const cactusObject = new THREE.Object3D();
+
+      const paloRadius = 0.5;
+      // Tronco del cactus
+      const troncoCactus = new THREE.CylinderGeometry(paloRadius, paloRadius, 3, 8);
+      // Parte redondeada del cactus
+      const redondeoCactus = new THREE.SphereGeometry(paloRadius, 8, 8);
+
+      // Material y malla del tronco
+      const paloMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
+      const paloMesh = new THREE.Mesh(troncoCactus, paloMaterial);
+      paloMesh.position.set(0, 1.5, 0);
+      paloMesh.castShadow = true;
+      paloMesh.receiveShadow = true;
+      cactusObject.add(paloMesh);
+
+      // Material y malla de la parte redondeada
+      const cactusMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
+      const cactusMesh = new THREE.Mesh(redondeoCactus, cactusMaterial);
+      cactusMesh.position.set(0, 3, 0);
+      cactusObject.add(cactusMesh);
+
+      // Palo horizontal del cactus
+      const paloHorizontal1 = new THREE.CylinderGeometry(paloRadius * 0.7, paloRadius * 0.7, 2.5, 8);
+      const paloHorizontalMesh1 = new THREE.Mesh(paloHorizontal1, paloMaterial);
+      paloHorizontalMesh1.position.set(0, 2, 0);
+      paloHorizontalMesh1.rotation.z = Math.PI / 2;
+      cactusObject.add(paloHorizontalMesh1);
+
+      // Parte redondeada del palo horizontal
+      const redondeoHorizontal1 = new THREE.SphereGeometry(paloRadius * 0.68, 8, 8);
+      const redondeoHorizontalMesh1 = new THREE.Mesh(redondeoHorizontal1, cactusMaterial);
+      redondeoHorizontalMesh1.position.set(1.25, 2, 0); // Posición en el extremo derecho
+      cactusObject.add(redondeoHorizontalMesh1);
+      
+      // Parte redondeada del otro extremo del palo horizontal
+      const redondeoHorizontal2 = new THREE.SphereGeometry(paloRadius * 0.68, 8, 8);
+      const redondeoHorizontalMesh2 = new THREE.Mesh(redondeoHorizontal2, cactusMaterial);
+      redondeoHorizontalMesh2.position.set(-1.25, 2, 0); // Posición en el extremo izquierdo
+      cactusObject.add(redondeoHorizontalMesh2);
+
+      // TODO: Añadir pinchos
+
+      cactusObject.position.set(x, y, z);
+      scene.add(cactusObject);
       cactus.push(cactusMesh);
     }
 
