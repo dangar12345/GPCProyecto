@@ -7,20 +7,22 @@ var heightMapWidth = 0;
 var heightMapHeight = 0;
 var displacementScale = 40;
 var carCameraOffset = new THREE.Vector3(0, 3, 4); // Cámara detrás del coche
-var keyMaps = {}; // Mapa de teclas presionadas
-var groundMesh; // Terreno
+var keyMaps = {}; // Mapa de teclas presionadas para mover el coche
+var groundMesh; // Terreno del juego
 var wheel1, wheel2, wheel3, wheel4; // Ruedas del coche
 var bidones = []; // Bidones de gasolina en la escena
-var total_bidones = 20
+var total_bidones = 20 // Total de bidones a generar para el videojuego
+var total_cactus = 20 // Total de bidones a generar para el videojuego
 var barraTrasera; // Barra trasera del coche
 var barraDiagonal; 
 var volante; // Volante del coche
-var loader;
-var stats;
+var loader; // Loader para cargar texturas
+var stats; // Cuadrado para mostrar fps
 var gasolina = 100; // Nivel de gasolina
 var porcetajePorBidon = 3; // Cada bidón da un 3% de gasolina
-var cactus = []
-var minimapa;
+var cactus = [] // Lista de cactus que aparecen en el mapa
+var minimapa; // Minimapa del juego
+var ganador; // Indica si has ganado el juego
 
 // 1-inicializa 
 init();
@@ -44,9 +46,6 @@ function init() {
   var aspectRatio = window.innerWidth / window.innerHeight;
   camera = new THREE.PerspectiveCamera(50, aspectRatio, 0.1, 5000);
   camera.position.set(30, 40, 60);
-
-  //cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
-  //cameraControls.target.set(0, 0, 0);
 
   // Añadir stats
   stats = new Stats();
@@ -90,57 +89,9 @@ function init() {
   window.addEventListener('resize', updateAspectRatio);
 }
 
-function loadScene() {
-  // NOTE: https://www.youtube.com/watch?v=wULUAhckH9w
-  var floorGeometry = new THREE.PlaneGeometry(400, 400, 100, 100);
-
-  let img = new Image();
-  img.onload = function() {
-    heightMapImage = img;
-    heightMapWidth = img.width;
-    heightMapHeight = img.height;
-
-    let canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    let ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-
-    heightMapData = ctx.getImageData(0, 0, img.width, img.height).data;
-
-    // Cargar el modelo del barril una sola vez
-    const loader = new THREE.GLTFLoader();
-    loader.load("/GPCProyecto/models/oil_barrel_low-poly/scene.gltf", function (gltf) {
-      const baseModel = gltf.scene;
-      baseModel.scale.set(3, 3, 3);
-
-      baseModel.traverse(function (node) {
-      if (node.isMesh) {
-        node.castShadow = true;
-        node.receiveShadow = true;
-      }
-      });
-
-      // Crear múltiples copias
-      for (let i = 0; i < total_bidones; i++) {
-        let x = (Math.random() - 0.5) * 300;
-        let z = (Math.random() - 0.5) * 300;
-        let y = getHeightAt(x, z);
-
-        // Clonar el modelo en vez de volverlo a cargar
-        let modelo = baseModel.clone(true);
-
-        // Ajustar posición y rotación
-        modelo.position.set(x, y + 0.5, z);
-        modelo.userData = { name: "bidon" };
-
-        bidones.push(modelo);
-        scene.add(modelo);
-      }
-    });
-
-    for (let i = 0; i < 20; i++) {
-      let x = (Math.random() - 0.5) * 300;
+// Función para crear un cactus. No encotraba modelos por internet así que he creado yo el cactus
+function createCactus(){
+  let x = (Math.random() - 0.5) * 300;
       let z = (Math.random() - 0.5) * 300;
       let y = getHeightAt(x, z);
       y -= 0.2 // para que se hunda un poco en el suelo
@@ -189,8 +140,62 @@ function loadScene() {
       // TODO: Añadir pinchos
 
       cactusObject.position.set(x, y, z);
+
+      return cactusObject
+}
+
+function loadScene() {
+  // NOTE: https://www.youtube.com/watch?v=wULUAhckH9w
+  var floorGeometry = new THREE.PlaneGeometry(400, 400, 100, 100);
+
+  let img = new Image();
+  img.onload = function() {
+    heightMapImage = img;
+    heightMapWidth = img.width;
+    heightMapHeight = img.height;
+
+    let canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    heightMapData = ctx.getImageData(0, 0, img.width, img.height).data;
+
+    // Cargar el modelo del barril y tambien cargamos los cactus
+    const loader = new THREE.GLTFLoader();
+    loader.load("/GPCProyecto/models/oil_barrel_low-poly/scene.gltf", function (gltf) {
+      const baseModel = gltf.scene;
+      baseModel.scale.set(3, 3, 3);
+
+      baseModel.traverse(function (node) {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+      });
+
+      // Aquí creamos multiples copias de los bidones
+      for (let i = 0; i < total_bidones; i++) {
+        let x = (Math.random() - 0.5) * 300;
+        let z = (Math.random() - 0.5) * 300;
+        let y = getHeightAt(x, z);
+
+        let modelo = baseModel.clone(true);
+
+        modelo.position.set(x, y + 0.5, z);
+        modelo.userData = { name: "bidon" };
+
+        bidones.push(modelo);
+        scene.add(modelo);
+      }
+    });
+
+    // Cargamos los cactus
+    for (let i = 0; i < total_cactus; i++) {
+      cactusObject = createCactus();
       scene.add(cactusObject);
-      cactus.push(cactusMesh);
+      cactus.push(cactusObject);
     }
 
     console.log("Heightmap cargado y listo para lectura");
@@ -215,16 +220,18 @@ function loadScene() {
     roughness: 0.9
   });
 
+  // Creamos el terreno
   groundMesh = new THREE.Mesh(floorGeometry, groundMat);
   groundMesh.rotation.x = -Math.PI / 2;
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
-  movingCube = new THREE.Object3D(); // contenedor vacío
+  movingCube = new THREE.Object3D();
   movingCube.castShadow = true;
   movingCube.receiveShadow = true;
   scene.add(movingCube);
 
+  // Rueda 1 del coche
   wheel1 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
@@ -233,6 +240,7 @@ function loadScene() {
   wheel1.position.set(3, 1, 2);
   movingCube.add(wheel1);
 
+  // Rueda 2 del coche
   wheel2 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
@@ -242,6 +250,7 @@ function loadScene() {
 
   movingCube.add(wheel2);
 
+  // Rueda 3 del coche
   wheel3 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
@@ -250,6 +259,7 @@ function loadScene() {
   wheel3.position.set(3, 1, -2);
   movingCube.add(wheel3);
 
+  // Rueda 4 del coche
   wheel4 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
@@ -260,9 +270,7 @@ function loadScene() {
 
   movingCube.position.set(0, 10, 0)
 
-// --- Barra delantera ---
-
-  // --- Barra trasera ---
+  // Barra trasera
   barraTrasera = new THREE.Mesh(
     new THREE.BoxGeometry(6, 0.3, 0.3),
     new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.6, roughness: 0.4 })
@@ -270,20 +278,23 @@ function loadScene() {
   barraTrasera.position.set(0, 1, -2);
   movingCube.add(barraTrasera);
 
+  // Bara derecha de las ruedas
   barraEnmedio1 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.3, 0.3, 4), // ancho, alto, profundo
+    new THREE.BoxGeometry(0.3, 0.3, 4),
     new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.6, roughness: 0.4 })
   );
   barraEnmedio1.position.set(3, 0, 0);
   movingCube.add(barraEnmedio1);
 
+  // Barra izquierda de las ruedas
   barraEnmedio2 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.3, 0.3, 4), // ancho, alto, profundo
+    new THREE.BoxGeometry(0.3, 0.3, 4),
     new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.6, roughness: 0.4 })
   );
   barraEnmedio2.position.set(-3, 0, 0);
   movingCube.add(barraEnmedio2);
 
+  // Volante
   volante = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 12),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
@@ -303,10 +314,10 @@ function updateAspectRatio() {
   camera.updateProjectionMatrix();
 }
 
+// Actualizar minimapa de acuerdo la posición del coche
 function updateMinimap() {
   minimapa.position.x = movingCube.position.x;
   minimapa.position.z = movingCube.position.z;
-  minimapa.position.y = 100; // altura
   minimapa.lookAt(movingCube.position.x, 0, movingCube.position.z);
 }
 
@@ -335,6 +346,7 @@ function getHeightAt(x, z) {
   return grayValue * displacementScale;
 }
 
+// Event listeners para capturar las teclas que están siendo pulsadas
 document.addEventListener('keydown', (event) => {
   keyMaps[event.key.toLowerCase()] = true;
 });
@@ -344,12 +356,12 @@ document.addEventListener('keyup', (event) => {
 });
 
 function moveCar(delta) {
-  const maxSpeed = 30; // maximum speed units per second
-  const acceleration = 60; // units per second squared
-  const deceleration = 20; // units per second squared
-  const rotateSpeed = Math.PI; // radians per second
+  const maxSpeed = 30; // maxma velocidad del coche
+  const acceleration = 60; // aceleración para que el coche no arranque a la máxima velocidad nada más pulsar
+  const deceleration = 20; // deceleración para que cuando suelte la tecla w el coche no se pare en seco
+  const rotateSpeed = Math.PI; // rotación de las ruedas
   
-  // Store and manage velocity as a persistent variable
+  // guardamos para el coche la velocidad actual
   if (!movingCube.userData.velocity) {
     movingCube.userData.velocity = 0;
   }
@@ -357,38 +369,38 @@ function moveCar(delta) {
   let currentVelocity = movingCube.userData.velocity;
   let targetVelocity = 0;
   
-  // Determine target velocity based on input
+  // Calculamos la velocidad a la que debería ir el coche
   if (keyMaps['w'] || keyMaps['arrowup']) {
     targetVelocity = -maxSpeed; // negative Z is forward
     if (keyMaps['shift']) {
-      targetVelocity = -maxSpeed * 2; // boost with shift
-      gasolina -= 0.03; // Consumir gasolina lentamente
+      targetVelocity = -maxSpeed * 2; // pulsando shift pones turbo pero consumes más gasolina
+      gasolina -= 0.05; // Consumir gasolina más rápido
     } else {
-        gasolina -= 0.03; // Consumir gasolina lentamente
+      gasolina -= 0.03; // Consumir gasolina lentamente
     }
     gasolina = Math.max(0, gasolina); // No puede ser negativa
   } else if (keyMaps['s'] || keyMaps['arrowdown']) {
-    targetVelocity = maxSpeed; // positive Z is backward
+    targetVelocity = maxSpeed;
   }
   
-  // Smoothly adjust current velocity towards target
+  // La ajustamos según la aceleración y deceleración
   if (currentVelocity < targetVelocity) {
     currentVelocity = Math.min(targetVelocity, currentVelocity + acceleration * delta);
   } else if (currentVelocity > targetVelocity) {
     currentVelocity = Math.max(targetVelocity, currentVelocity - deceleration * delta);
   }
   
-  // Store updated velocity
+  // Almacenamos la nueva velocidad
   movingCube.userData.velocity = currentVelocity;
   
-  // Apply movement if there's any velocity
+  // Movemos el coche
   if (Math.abs(currentVelocity) > 0.01) {
     movingCube.translateZ(currentVelocity * delta);
   }
   let anguloGiro = 0
   const maxRotation = Math.PI / 3; // 30 grados
 
-  // Handle rotation
+  // Si hacemos un giro rotamos el volante, para añadir algo de animación
   if (keyMaps['a'] || keyMaps['arrowleft']) {
     volante.rotation.y = Math.min(volante.rotation.y + rotateSpeed * delta, maxRotation);
 
@@ -489,8 +501,7 @@ function updatePercentajeGasolina(element) {
 }
 
 function displayWarning() {
- // Actualizar el mensaje si no hay gasolina
-  if (gasolina <= 0) {
+  if (gasolina <= 0 && !ganador) {
     let gameOverMsg = document.getElementById('gameOverMsg');
     if (!gameOverMsg) {
       gameOverMsg = document.createElement('div');
@@ -501,18 +512,92 @@ function displayWarning() {
       gameOverMsg.style.transform = 'translate(-50%, -50%)';
       gameOverMsg.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
       gameOverMsg.style.color = 'white';
-      gameOverMsg.style.padding = '20px';
+      gameOverMsg.style.padding = '30px';
       gameOverMsg.style.borderRadius = '10px';
       gameOverMsg.style.fontSize = '24px';
       gameOverMsg.style.fontFamily = 'Arial, sans-serif';
       gameOverMsg.style.textAlign = 'center';
-      gameOverMsg.innerHTML = 'Sin gasolina!<br>Recoge bidones para continuar.';
+      gameOverMsg.style.zIndex = '9999';
+
+      const texto = document.createElement('div');
+      texto.innerHTML = '¡Te has quedado sin gasolina!<br><br><strong>Has perdido 😢</strong>';
+
+      const boton = document.createElement('button');
+      boton.innerText = 'Reiniciar partida';
+      boton.style.marginTop = '20px';
+      boton.style.padding = '10px 20px';
+      boton.style.fontSize = '18px';
+      boton.style.border = 'none';
+      boton.style.borderRadius = '5px';
+      boton.style.backgroundColor = '#28a745';
+      boton.style.color = 'white';
+      boton.style.cursor = 'pointer';
+      boton.style.transition = 'background 0.3s';
+
+      boton.onclick = () => {
+        location.reload();
+      };
+
+      gameOverMsg.appendChild(texto);
+      gameOverMsg.appendChild(boton);
       document.body.appendChild(gameOverMsg);
     }
   } else {
     const gameOverMsg = document.getElementById('gameOverMsg');
     if (gameOverMsg) {
       gameOverMsg.remove();
+    }
+  }
+}
+
+function displaySuccess() {
+  if (bidones.length === 0 && gasolina != 100) {
+    ganador = true
+    let successMsg = document.getElementById('successMsg');
+    if (!successMsg) {
+      successMsg = document.createElement('div');
+      successMsg.id = 'successMsg';
+      successMsg.style.position = 'absolute';
+      successMsg.style.top = '50%';
+      successMsg.style.left = '50%';
+      successMsg.style.transform = 'translate(-50%, -50%)';
+      successMsg.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+      successMsg.style.color = 'white';
+      successMsg.style.padding = '30px';
+      successMsg.style.borderRadius = '10px';
+      successMsg.style.fontSize = '24px';
+      successMsg.style.fontFamily = 'Arial, sans-serif';
+      successMsg.style.textAlign = 'center';
+      successMsg.style.zIndex = '9999';
+      successMsg.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+
+      const texto = document.createElement('div');
+      texto.innerHTML = '🎉 ¡Has recogido todos los bidones! 🎉<br><br><strong>¡Has ganado! 🏆</strong>';
+
+      const boton = document.createElement('button');
+      boton.innerText = 'Jugar de nuevo';
+      boton.style.marginTop = '20px';
+      boton.style.padding = '10px 20px';
+      boton.style.fontSize = '18px';
+      boton.style.border = 'none';
+      boton.style.borderRadius = '5px';
+      boton.style.backgroundColor = '#007bff';
+      boton.style.color = 'white';
+      boton.style.cursor = 'pointer';
+      boton.style.transition = 'background 0.3s';
+
+      boton.onclick = () => {
+        location.reload(); // reinicia el juego
+      };
+
+      successMsg.appendChild(texto);
+      successMsg.appendChild(boton);
+      document.body.appendChild(successMsg);
+    }
+  } else {
+    const successMsg = document.getElementById('successMsg');
+    if (successMsg) {
+      successMsg.remove();
     }
   }
 }
@@ -582,7 +667,6 @@ function update() {
     return true;
   });
 
-  //displayGasolina();
   let gasolinaDisplay = document.getElementById('gasolinaDisplay');
   let bidonesRecogidos = document.getElementById('conteoBidones');
   if (bidonesRecogidos) {
@@ -592,6 +676,7 @@ function update() {
   updatePercentajeGasolina(gasolinaDisplay);
 
   displayWarning();
+  displaySuccess();
 
   // --- CÁMARA DETRÁS DEL COCHE ---
   let offset = carCameraOffset.clone();
