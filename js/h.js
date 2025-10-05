@@ -22,7 +22,7 @@ var gasolina = 100; // Nivel de gasolina
 var porcetajePorBidon = 3; // Cada bidón da un 3% de gasolina
 var cactus = [] // Lista de cactus que aparecen en el mapa
 var minimapa; // Minimapa del juego
-var ganador; // Indica si has ganado el juego
+var ganador = null; // Indica si has ganado el juego
 
 // 1-inicializa 
 init();
@@ -49,12 +49,13 @@ function init() {
 
   // Añadir stats
   stats = new Stats();
-  stats.setMode( 0 );					// Muestra FPS
-	stats.domElement.style.position = 'absolute';		// Abajo izquierda
+  stats.setMode( 0 ); // Muestra FPS
+	stats.domElement.style.position = 'absolute'; // Arriba izquierda
 	stats.domElement.style.bottom = '0px';
 	stats.domElement.style.left = '0px';
 	document.getElementById( 'container' ).appendChild( stats.domElement );
 
+  // Cámara para el minimapa
   const zoom = 50;
   minimapa = new THREE.OrthographicCamera(-zoom, zoom, zoom, -zoom, 0.1, 1000);
 
@@ -83,7 +84,7 @@ function init() {
   light.shadow.camera.far = 1000;
   scene.add(light);
 
-  // Luz ambiental suave
+  // Luz ambiental
   scene.add(new THREE.AmbientLight(0x404040, 0.6));
 
   window.addEventListener('resize', updateAspectRatio);
@@ -94,7 +95,7 @@ function createCactus(){
   let x = (Math.random() - 0.5) * 300;
       let z = (Math.random() - 0.5) * 300;
       let y = getHeightAt(x, z);
-      y -= 0.2 // para que se hunda un poco en el suelo
+      y -= 0.2 // para que se hunda un poco en el suelo porque aveces parece que flota
 
       const cactusObject = new THREE.Object3D();
 
@@ -146,6 +147,8 @@ function createCactus(){
 
 function loadScene() {
   // NOTE: https://www.youtube.com/watch?v=wULUAhckH9w
+  // Aquí lo que se hace es crear el terreno a partir de un heightmap
+  // La imagen del heightmap es una imagen de escala de grises donde el valor de cada píxel indica la altura en ese punto
   var floorGeometry = new THREE.PlaneGeometry(400, 400, 100, 100);
 
   let img = new Image();
@@ -163,6 +166,7 @@ function loadScene() {
     heightMapData = ctx.getImageData(0, 0, img.width, img.height).data;
 
     // Cargar el modelo del barril y tambien cargamos los cactus
+    // Los cargamos aquí para asegurarnos que se cargan después de cargar el heightmap porque si lo hacia después de esta función no se cargaban
     const loader = new THREE.GLTFLoader();
     loader.load("/GPCProyecto/models/oil_barrel_low-poly/scene.gltf", function (gltf) {
       const baseModel = gltf.scene;
@@ -211,21 +215,22 @@ function loadScene() {
   disMap.repeat.set(5, 5);
 
   // Material con mapa de desplazamiento
+  // Creamos el terreno con la textura de arena y el heigtmap para crear las montañas del desierto
   const groundMat = new THREE.MeshStandardMaterial({
     map: sandTex,
-    //wireframe: true,
     displacementMap: disMap,
     displacementScale: displacementScale,
     metalness: 0.1,
     roughness: 0.9
   });
 
-  // Creamos el terreno
+  // Creamos el mesh del terreno
   groundMesh = new THREE.Mesh(floorGeometry, groundMat);
   groundMesh.rotation.x = -Math.PI / 2;
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
 
+  // Creamos el coche
   movingCube = new THREE.Object3D();
   movingCube.castShadow = true;
   movingCube.receiveShadow = true;
@@ -236,7 +241,7 @@ function loadScene() {
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
     new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
   );
-  wheel1.rotation.z = Math.PI / 2;
+  wheel1.rotation.z = Math.PI / 2; // Rotamos para que la rueda esté en posición correcta
   wheel1.position.set(3, 1, 2);
   movingCube.add(wheel1);
 
@@ -314,7 +319,7 @@ function updateAspectRatio() {
   camera.updateProjectionMatrix();
 }
 
-// Actualizar minimapa de acuerdo la posición del coche
+// Actualizar minimapa de acuerdo a la posición del coche
 function updateMinimap() {
   minimapa.position.x = movingCube.position.x;
   minimapa.position.z = movingCube.position.z;
@@ -322,9 +327,8 @@ function updateMinimap() {
 }
 
 function getHeightAt(x, z) {
-  if (!heightMapData) return 0; // aún no cargado
+  if (!heightMapData) return 0; // el mapa no está cargado aún
   const terrainSize = 400; // tamaño del plano en unidades
-  // El plano va de -100 a 100 en X y Z (porque es 200x200 centrado en 0)
   // Convertimos x,z a coordenadas UV [0, 1]
   let u = (x + terrainSize/2) / terrainSize;  // mapea -100..100 → 0..1
   let v = (z + terrainSize/2) / terrainSize;  // igual para z
@@ -371,16 +375,18 @@ function moveCar(delta) {
   
   // Calculamos la velocidad a la que debería ir el coche
   if (keyMaps['w'] || keyMaps['arrowup']) {
-    targetVelocity = -maxSpeed; // negative Z is forward
+    targetVelocity = -maxSpeed;
     if (keyMaps['shift']) {
       targetVelocity = -maxSpeed * 2; // pulsando shift pones turbo pero consumes más gasolina
       gasolina -= 0.05; // Consumir gasolina más rápido
     } else {
       gasolina -= 0.03; // Consumir gasolina lentamente
     }
-    gasolina = Math.max(0, gasolina); // No puede ser negativa
+    gasolina = Math.max(0, gasolina); // Asegurarse que la gasolina no sea negativa
   } else if (keyMaps['s'] || keyMaps['arrowdown']) {
     targetVelocity = maxSpeed;
+    gasolina -= 0.02; // Consumir gasolina al ir marcha atrás
+    gasolina = Math.max(0, gasolina);
   }
   
   // La ajustamos según la aceleración y deceleración
@@ -400,7 +406,7 @@ function moveCar(delta) {
   let anguloGiro = 0
   const maxRotation = Math.PI / 3; // 30 grados
 
-  // Si hacemos un giro rotamos el volante, para añadir algo de animación
+  // Cuando es marcha atrás el giro es inverso
   if (keyMaps['a'] || keyMaps['arrowleft']) {
     volante.rotation.y = Math.min(volante.rotation.y + rotateSpeed * delta, maxRotation);
 
@@ -412,6 +418,7 @@ function moveCar(delta) {
     anguloGiro = Math.PI / 6;
 
   }
+  // Si hacemos un giro rotamos el volante, para añadir algo de animación
   if (keyMaps['d'] || keyMaps['arrowright']) {
     volante.rotation.y = Math.max(volante.rotation.y - rotateSpeed * delta, -maxRotation);
     if(keyMaps['s'] || keyMaps['arrowdown']){
@@ -439,7 +446,7 @@ function updateBarra(barra, rueda1, rueda2) {
   // Calcular el vector dirección entre las ruedas
   let direccion = pos2.clone().sub(pos1);
   
-  // Calcular el ángulo de rotación en el eje Z (roll)
+  // Calcular el ángulo de rotación en el eje Z
   // Usamos Math.atan2 para obtener el ángulo correcto
   let anguloZ = Math.atan2(direccion.y, direccion.x);
   
@@ -468,6 +475,7 @@ function updateBarraEnmedio(barra, rueda1, rueda2) {
 }
 
 function displayGasolina(){
+  // Crear el contenedor para mostrar el nivel de gasolina
   let gasolinaDisplay = document.getElementById('gasolinaDisplay');
     if (!gasolinaDisplay) {
       gasolinaDisplay = document.createElement('div');
@@ -501,7 +509,8 @@ function updatePercentajeGasolina(element) {
 }
 
 function displayWarning() {
-  if (gasolina <= 0 && !ganador) {
+  if (gasolina <= 0 && ganador != true) {
+    ganador = false
     let gameOverMsg = document.getElementById('gameOverMsg');
     if (!gameOverMsg) {
       gameOverMsg = document.createElement('div');
@@ -551,7 +560,7 @@ function displayWarning() {
 }
 
 function displaySuccess() {
-  if (bidones.length === 0 && gasolina != 100) {
+  if (bidones.length === 0 && gasolina != 100 && ganador != false) {
     ganador = true
     let successMsg = document.getElementById('successMsg');
     if (!successMsg) {
@@ -603,6 +612,7 @@ function displaySuccess() {
 }
 
 document.addEventListener("wheel", (event) => {
+  // Hacer zoom moviendo la rueda del ratón
   if (event.deltaY < 0) {
     camera.fov = Math.max(30, camera.fov - 2); 
   } else {
@@ -614,11 +624,11 @@ document.addEventListener("wheel", (event) => {
 function update() {
   moveCar(0.016); // asumiendo ~60fps, delta ~16ms
 
-  // --- ALTURA DEL COCHE SEGÚN TERRENO ---
+  // obtener altura del coche sobre el terreno
   let terrainHeight = getHeightAt(movingCube.position.x, movingCube.position.z);
   movingCube.position.y = terrainHeight + 2.5;
 
-  // --- ALTURA DE CADA RUEDA ---
+  // ajustar las ruedas a la altura del terreno
   let wheels = [wheel1, wheel2, wheel3, wheel4];
 
   wheels.forEach((wheel) => {
@@ -643,7 +653,7 @@ function update() {
   // NOTE: https://stackoverflow.com/questions/66032362/using-intersect-intersectsbox-for-object-collision-threejs
   let carBox = new THREE.Box3().setFromObject(movingCube);
 
-  // Use filter to create a new array without the collected bidones
+  // filtramos bidones que colisionan con el coche y si colisionan los eliminamos de la escena y de la lista de bidones
   bidones = bidones.filter((bidon) => {
     let bidonBox = new THREE.Box3().setFromObject(bidon);
 
@@ -656,6 +666,7 @@ function update() {
     return true;
   });
 
+  // filtramos cactus que colisionan con el coche y si colisionan los eliminamos de la escena y de la lista de cactus
   cactus = cactus.filter((c) => {
     let cactusBox = new THREE.Box3().setFromObject(c);
     if (carBox.intersectsBox(cactusBox)) {
@@ -675,10 +686,12 @@ function update() {
 
   updatePercentajeGasolina(gasolinaDisplay);
 
-  displayWarning();
-  displaySuccess();
-
-  // --- CÁMARA DETRÁS DEL COCHE ---
+  if(ganador == null){
+    displayWarning();
+    displaySuccess();
+  }
+  
+  // Actualizar la posición de la cámara para que siga al coche
   let offset = carCameraOffset.clone();
   offset.applyQuaternion(movingCube.quaternion);
 
@@ -689,12 +702,15 @@ function update() {
   let lookTarget = movingCube.position.clone().add(direction.multiplyScalar(5));
 
   camera.lookAt(lookTarget);
-
+  // Actualizar las barras del coche
   updateBarra(barraTrasera, wheel3, wheel4);
-
   updateBarraEnmedio(barraEnmedio1, wheel1, wheel3);
   updateBarraEnmedio(barraEnmedio2, wheel2, wheel4);
+
+  // Actualizar stats
   stats.update();
+
+  // Actualizar minimapa
   updateMinimap();
 }
 
@@ -702,12 +718,10 @@ function update() {
 function render() {
   requestAnimationFrame(render);
   update();
-  // --- Render principal ---
   renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
   renderer.setScissorTest(false);
   renderer.render(scene, camera);
 
-  // --- Render minimapa ---
   const padding = 20; // margen desde esquina
   const minimapSize = 200; // tamaño en píxeles
 
