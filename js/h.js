@@ -63,7 +63,7 @@ function init() {
   camera.position.set(30, 40, 60);
   camera.add(listener)
 
-  ambientLoader.load('/audios/western-loop.mp3', function(buffer) {
+  ambientLoader.load('/GPCProyecto/audios/western-loop.mp3', function(buffer) {
     ambientSound.setBuffer(buffer);
     ambientSound.setVolume(0.5);
     ambientSound.setLoop(true);
@@ -398,7 +398,7 @@ function moveCar(delta) {
   if (!isAudioLoaded) {
       // NOTE: https://threejs.org/docs/#api/en/audio/Audio
       // NOTE: https://pixabay.com/es/sound-effects/motor-brake-sound-324220/
-      motorLoader.load('/audios/motor-brake-sound.mp3', function(buffer) {
+      motorLoader.load('/GPCProyecto/audios/motor-brake-sound.mp3', function(buffer) {
         motorSound.setBuffer(buffer);
         motorSound.setVolume(0.5); // Ajustar volumen según velocidad
         motorSound.setLoop(true); // El sonido se reproducirá en bucle
@@ -741,7 +741,7 @@ function update() {
       pickupInstance.setVolume(1);
       pickupInstance.play();
       } else {
-      bidonLoader.load('/audios/collectcoin.mp3', function(buffer) {
+      bidonLoader.load('/GPCProyecto/audios/collectcoin.mp3', function(buffer) {
         pickupSound.setBuffer(buffer);
         pickupSound.setVolume(1);
         pickupSound.play();
