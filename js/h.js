@@ -12,7 +12,7 @@ var groundMesh; // Terreno del juego
 var wheel1, wheel2, wheel3, wheel4; // Ruedas del coche
 var bidones = []; // Bidones de gasolina en la escena
 var total_bidones = 20 // Total de bidones a generar para el videojuego
-var total_cactus = 20 // Total de bidones a generar para el videojuego
+var total_cactus = 70 // Total de cactus a generar para el videojuego
 var barraTrasera; // Barra trasera del coche
 var barraDiagonal; 
 var volante; // Volante del coche
@@ -23,6 +23,21 @@ var porcetajePorBidon = 3; // Cada bidón da un 3% de gasolina
 var cactus = [] // Lista de cactus que aparecen en el mapa
 var minimapa; // Minimapa del juego
 var ganador = null; // Indica si has ganado el juego
+const listener = new THREE.AudioListener();
+
+const ambientSound = new THREE.Audio(listener);  // música de fondo
+const motorSound = new THREE.Audio(listener);    // motor del coche
+const pickupSound = new THREE.Audio(listener);   // sonido al recoger bidón
+
+// Loaders independientes
+const ambientLoader = new THREE.AudioLoader();
+const motorLoader = new THREE.AudioLoader();
+const bidonLoader = new THREE.AudioLoader();
+var isAudioLoaded = false; // Flag para controlar si el audio ya está cargado
+var isPlaying = false; // Flag para controlar si el audio ya está reproduciéndose
+
+var ambientSoundPlaying = false; // Flag para poder saber si la música de fondo está sonando o no
+
 
 // 1-inicializa 
 init();
@@ -46,6 +61,15 @@ function init() {
   var aspectRatio = window.innerWidth / window.innerHeight;
   camera = new THREE.PerspectiveCamera(50, aspectRatio, 0.1, 5000);
   camera.position.set(30, 40, 60);
+  camera.add(listener)
+
+  ambientLoader.load('/audios/western-loop.mp3', function(buffer) {
+    ambientSound.setBuffer(buffer);
+    ambientSound.setVolume(0.5);
+    ambientSound.setLoop(true);
+    ambientSound.play();
+    ambientSoundPlaying = true;
+  });
 
   // Añadir stats
   stats = new Stats();
@@ -368,7 +392,32 @@ function moveCar(delta) {
   // guardamos para el coche la velocidad actual
   if (!movingCube.userData.velocity) {
     movingCube.userData.velocity = 0;
+    // Manejar el audio del motor
   }
+
+  if (!isAudioLoaded) {
+      // NOTE: https://threejs.org/docs/#api/en/audio/Audio
+      // NOTE: https://pixabay.com/es/sound-effects/motor-brake-sound-324220/
+      motorLoader.load('/audios/motor-brake-sound.mp3', function(buffer) {
+        motorSound.setBuffer(buffer);
+        motorSound.setVolume(0.5); // Ajustar volumen según velocidad
+        motorSound.setLoop(true); // El sonido se reproducirá en bucle
+        isAudioLoaded = true;
+      });
+    }
+    
+    if (Math.abs(movingCube.userData.velocity) > 0.1) {
+      if (isAudioLoaded && !isPlaying) {
+        motorSound.play();
+        motorSound.setVolume(0.5 + Math.min(Math.abs(movingCube.userData.velocity) / maxSpeed, 1) * 0.5); // Ajustar volumen según velocidad
+        isPlaying = true;
+      }
+    } else {
+      if (isPlaying) {
+        motorSound.pause();
+        isPlaying = false;
+      }
+    }
   
   let currentVelocity = movingCube.userData.velocity;
   let targetVelocity = 0;
@@ -611,6 +660,32 @@ function displaySuccess() {
   }
 }
 
+// Función para comprobar si el coche ha salido del terreno
+// Si se ha salido, devuelvo el coche al centro del terreno
+function checkOutOfBounds() {
+  const limit = 200 + 20; // límite del terreno
+  if (Math.abs(movingCube.position.x) > limit || Math.abs(movingCube.position.z) > limit) {
+    // Si el coche sale del terreno, lo devolvemos al centro
+    movingCube.position.set(0, getHeightAt(0, 0) + 2.5, 0);
+    movingCube.userData.velocity = 0; // parar el coche
+  }
+}
+
+// Función para pausar o reanudar la música ambiente
+function pauseSong(){
+  document.addEventListener("keydown", (event) => {
+    if (event.key.toLowerCase() === 'm') {
+      if(ambientSoundPlaying){
+        ambientSound.pause();
+        ambientSoundPlaying = false;
+      } else{
+        ambientSound.play();
+        ambientSoundPlaying = true;
+      }
+   }
+  })
+}
+
 document.addEventListener("wheel", (event) => {
   // Hacer zoom moviendo la rueda del ratón
   if (event.deltaY < 0) {
@@ -627,6 +702,8 @@ function update() {
   // obtener altura del coche sobre el terreno
   let terrainHeight = getHeightAt(movingCube.position.x, movingCube.position.z);
   movingCube.position.y = terrainHeight + 2.5;
+  checkOutOfBounds();
+  pauseSong();
 
   // ajustar las ruedas a la altura del terreno
   let wheels = [wheel1, wheel2, wheel3, wheel4];
@@ -658,6 +735,19 @@ function update() {
     let bidonBox = new THREE.Box3().setFromObject(bidon);
 
     if (carBox.intersectsBox(bidonBox)) {
+      if (pickupSound.buffer) {
+      const pickupInstance = new THREE.Audio(listener);
+      pickupInstance.setBuffer(pickupSound.buffer);
+      pickupInstance.setVolume(1);
+      pickupInstance.play();
+      } else {
+      bidonLoader.load('/audios/collectcoin.mp3', function(buffer) {
+        pickupSound.setBuffer(buffer);
+        pickupSound.setVolume(1);
+        pickupSound.play();
+      });
+      }
+
       scene.remove(bidon);
       gasolina += porcetajePorBidon;
       gasolina = Math.min(100, gasolina);
