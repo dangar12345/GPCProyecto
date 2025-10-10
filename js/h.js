@@ -63,7 +63,7 @@ function init() {
   camera.position.set(30, 40, 60);
   camera.add(listener)
 
-  ambientLoader.load('/GPCProyecto/audios/western-loop.mp3', function(buffer) {
+  ambientLoader.load('/audios/western-loop.mp3', function(buffer) {
     ambientSound.setBuffer(buffer);
     ambientSound.setVolume(0.5);
     ambientSound.setLoop(true);
@@ -87,29 +87,39 @@ function init() {
   minimapa.lookAt(0, 0, 0);
   minimapa.up.set(0, 0, -1); // para que adelante del coche apunte hacia arriba
 
-
-  // luz direccional
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(200, 400, 200);
-  light.castShadow = true;
-
-  // Resolución del mapa de sombras
-  light.shadow.mapSize.width = 2048;
-  light.shadow.mapSize.height = 2048;
-
-  // Ajustar el área de proyección de la cámara de sombras
-  const d = 500; 
-  light.shadow.camera.left = -d;
-  light.shadow.camera.right = d;
-  light.shadow.camera.top = d;
-  light.shadow.camera.bottom = -d;
-
-  light.shadow.camera.near = 1;
-  light.shadow.camera.far = 1000;
-  scene.add(light);
-
+  // Luces para cumplir la práctica 5
   // Luz ambiental
-  scene.add(new THREE.AmbientLight(0x404040, 0.6));
+  const ambient = new THREE.AmbientLight(0xffffff, 0.25);
+  scene.add(ambient);
+
+  // Luz direccional (sol)
+  const directional = new THREE.DirectionalLight(0xfff5e1, 0.55); // color cálido y menor intensidad
+  directional.position.set(200, 400, 200);
+  directional.castShadow = true;
+
+  directional.shadow.mapSize.width = 2048;
+  directional.shadow.mapSize.height = 2048;
+  const d = 500;
+  directional.shadow.camera.left = -d;
+  directional.shadow.camera.right = d;
+  directional.shadow.camera.top = d;
+  directional.shadow.camera.bottom = -d;
+  directional.shadow.camera.near = 1;
+  directional.shadow.camera.far = 1000;
+  directional.shadow.bias = -0.0004;
+
+  scene.add(directional);
+
+  // Luz focal
+  const spot = new THREE.SpotLight(0xffffff, 0.5, 600, Math.PI / 4, 0.4, 1.2);
+  spot.position.set(0, 70, 60);
+  spot.castShadow = true;
+  spot.shadow.mapSize.width = 1024;
+  spot.shadow.mapSize.height = 1024;
+  spot.shadow.camera.near = 1;
+  spot.shadow.camera.far = 800;
+  spot.shadow.bias = -0.0005;
+  scene.add(spot);
 
   window.addEventListener('resize', updateAspectRatio);
 }
