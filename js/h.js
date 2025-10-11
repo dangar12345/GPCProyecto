@@ -38,7 +38,7 @@ var isPlaying = false; // Variable para controlar si el audio ya está reproduci
 
 var ambientSoundPlaying = false; // Variable para poder saber si la música de fondo está sonando o no
 
-const carpeta = "/GPCProyecto";
+const carpeta = "";
 
 // 1-inicializa 
 init();
@@ -296,10 +296,13 @@ function loadScene() {
 
     console.log("Heightmap cargado y listo para lectura");
   };
-  img.src = `${carpeta}/images/h.jpg`;
+
+  const time = Date.now();
+  let modulo = time % 3;
+  img.src = `${carpeta}/images/h${modulo}.jpg`;
 
   // Cargar heightmap
-  let disMap = new THREE.TextureLoader().setPath(`${carpeta}/images/`).load("h.jpg");
+  let disMap = new THREE.TextureLoader().setPath(`${carpeta}/images/`).load(`h${modulo}.jpg`);
   let sandTex = new THREE.TextureLoader().setPath(`${carpeta}/images/`).load("sand.jpg");
 
 
