@@ -12,7 +12,7 @@ var groundMesh; // Terreno del juego
 var wheel1, wheel2, wheel3, wheel4; // Ruedas del coche
 var bidones = []; // Bidones de gasolina en la escena
 var total_bidones = 20 // Total de bidones a generar para el videojuego
-var total_cactus = 70 // Total de cactus a generar para el videojuego
+var total_cactus = 100 // Total de cactus a generar para el videojuego
 var barraTrasera; // Barra trasera del coche
 var barraDiagonal; 
 var volante; // Volante del coche
@@ -29,15 +29,16 @@ const ambientSound = new THREE.Audio(listener);  // música de fondo
 const motorSound = new THREE.Audio(listener);    // motor del coche
 const pickupSound = new THREE.Audio(listener);   // sonido al recoger bidón
 
-// Loaders independientes
+// Loaders para cada música
 const ambientLoader = new THREE.AudioLoader();
 const motorLoader = new THREE.AudioLoader();
 const bidonLoader = new THREE.AudioLoader();
-var isAudioLoaded = false; // Flag para controlar si el audio ya está cargado
-var isPlaying = false; // Flag para controlar si el audio ya está reproduciéndose
+var isAudioLoaded = false; // Variable para controlar si el audio ya está cargado
+var isPlaying = false; // Variable para controlar si el audio ya está reproduciéndose
 
-var ambientSoundPlaying = false; // Flag para poder saber si la música de fondo está sonando o no
+var ambientSoundPlaying = false; // Variable para poder saber si la música de fondo está sonando o no
 
+const carpeta = "/GPCProyecto";
 
 // 1-inicializa 
 init();
@@ -63,7 +64,7 @@ function init() {
   camera.position.set(30, 40, 60);
   camera.add(listener)
 
-  ambientLoader.load('/audios/western-loop.mp3', function(buffer) {
+  ambientLoader.load(`${carpeta}/audios/western-loop.mp3`, function(buffer) {
     ambientSound.setBuffer(buffer);
     ambientSound.setVolume(0.5);
     ambientSound.setLoop(true);
@@ -127,56 +128,113 @@ function init() {
 // Función para crear un cactus. No encotraba modelos por internet así que he creado yo el cactus
 function createCactus(){
   let x = (Math.random() - 0.5) * 300;
-      let z = (Math.random() - 0.5) * 300;
-      let y = getHeightAt(x, z);
-      y -= 0.2 // para que se hunda un poco en el suelo porque aveces parece que flota
+  let z = (Math.random() - 0.5) * 300;
+  let y = getHeightAt(x, z);
 
-      const cactusObject = new THREE.Object3D();
+  // Comprobar que el cactus esté separado de otros
+  const minimaDistancia = 5; // Distancia mínima entre cactus
+  let cactusValido = false;
+  let intentos = 0;
+  const numeroIntentos = 20; // Máximo número de intentos para encontrar una posición válida
 
-      const paloRadius = 0.5;
-      // Tronco del cactus
-      const troncoCactus = new THREE.CylinderGeometry(paloRadius, paloRadius, 3, 8);
-      // Parte redondeada del cactus
-      const redondeoCactus = new THREE.SphereGeometry(paloRadius, 8, 8);
+  // Intentar encontrar una posición válida
+  while (!cactusValido && intentos < numeroIntentos) {
+    cactusValido = true;
+    for (let cactusCreado of cactus) {
+      const dx = cactusCreado.position.x - x;
+      const dz = cactusCreado.position.z - z;
+      const distance = Math.sqrt(dx * dx + dz * dz);
 
-      // Material y malla del tronco
-      const paloMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
-      const paloMesh = new THREE.Mesh(troncoCactus, paloMaterial);
-      paloMesh.position.set(0, 1.5, 0);
-      paloMesh.castShadow = true;
-      paloMesh.receiveShadow = true;
-      cactusObject.add(paloMesh);
+      if (distance < minimaDistancia) {
+        cactusValido = false;
+        x = (Math.random() - 0.5) * 300;
+        z = (Math.random() - 0.5) * 300;
+        y = getHeightAt(x, z);
+        intentos++;
+        break;
+      }
+    }
+  }
 
-      // Material y malla de la parte redondeada
-      const cactusMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
-      const cactusMesh = new THREE.Mesh(redondeoCactus, cactusMaterial);
-      cactusMesh.position.set(0, 3, 0);
-      cactusObject.add(cactusMesh);
+  // Si después de varios intentos no encontramos posición, usamos la última
+  if (intentos >= numeroIntentos) {
+    console.log("No se pudo encontrar una posición adecuada para un cactus después de varios intentos");
+  }
+  y -= 0.2 // para que se hunda un poco en el suelo porque aveces parece que flota
 
-      // Palo horizontal del cactus
-      const paloHorizontal1 = new THREE.CylinderGeometry(paloRadius * 0.7, paloRadius * 0.7, 2.5, 8);
-      const paloHorizontalMesh1 = new THREE.Mesh(paloHorizontal1, paloMaterial);
-      paloHorizontalMesh1.position.set(0, 2, 0);
-      paloHorizontalMesh1.rotation.z = Math.PI / 2;
-      cactusObject.add(paloHorizontalMesh1);
+  const cactusObject = new THREE.Object3D();
 
-      // Parte redondeada del palo horizontal
-      const redondeoHorizontal1 = new THREE.SphereGeometry(paloRadius * 0.68, 8, 8);
-      const redondeoHorizontalMesh1 = new THREE.Mesh(redondeoHorizontal1, cactusMaterial);
-      redondeoHorizontalMesh1.position.set(1.25, 2, 0); // Posición en el extremo derecho
-      cactusObject.add(redondeoHorizontalMesh1);
-      
-      // Parte redondeada del otro extremo del palo horizontal
-      const redondeoHorizontal2 = new THREE.SphereGeometry(paloRadius * 0.68, 8, 8);
-      const redondeoHorizontalMesh2 = new THREE.Mesh(redondeoHorizontal2, cactusMaterial);
-      redondeoHorizontalMesh2.position.set(-1.25, 2, 0); // Posición en el extremo izquierdo
-      cactusObject.add(redondeoHorizontalMesh2);
+  const paloRadius = 0.5;
+  // Tronco del cactus
+  const troncoCactus = new THREE.CylinderGeometry(paloRadius, paloRadius, 3, 8);
+  // Parte redondeada del cactus
+  const redondeoCactus = new THREE.SphereGeometry(paloRadius, 8, 8);
 
-      // TODO: Añadir pinchos
+  // Material y malla del tronco
+  const paloMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
+  const paloMesh = new THREE.Mesh(troncoCactus, paloMaterial);
+  paloMesh.position.set(0, 1.5, 0);
+  paloMesh.castShadow = true;
+  paloMesh.receiveShadow = true;
+  cactusObject.add(paloMesh);
 
-      cactusObject.position.set(x, y, z);
+  // Material y malla de la parte redondeada
+  const cactusMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
+  const cactusMesh = new THREE.Mesh(redondeoCactus, cactusMaterial);
+  cactusMesh.position.set(0, 3, 0);
+  cactusObject.add(cactusMesh);
 
-      return cactusObject
+  // Palo horizontal del cactus
+  const paloHorizontal1 = new THREE.CylinderGeometry(paloRadius * 0.7, paloRadius * 0.7, 2.5, 8);
+  const paloHorizontalMesh1 = new THREE.Mesh(paloHorizontal1, paloMaterial);
+  paloHorizontalMesh1.position.set(0, 2, 0);
+  paloHorizontalMesh1.rotation.z = Math.PI / 2;
+  cactusObject.add(paloHorizontalMesh1);
+
+  // Parte redondeada del palo horizontal
+  const redondeoHorizontal1 = new THREE.SphereGeometry(paloRadius * 0.68, 8, 8);
+  const redondeoHorizontalMesh1 = new THREE.Mesh(redondeoHorizontal1, cactusMaterial);
+  redondeoHorizontalMesh1.position.set(1.25, 2, 0); // Posición en el extremo derecho
+  cactusObject.add(redondeoHorizontalMesh1);
+  
+  // Parte redondeada del otro extremo del palo horizontal
+  const redondeoHorizontal2 = new THREE.SphereGeometry(paloRadius * 0.68, 8, 8);
+  const redondeoHorizontalMesh2 = new THREE.Mesh(redondeoHorizontal2, cactusMaterial);
+  redondeoHorizontalMesh2.position.set(-1.25, 2, 0); // Posición en el extremo izquierdo
+  cactusObject.add(redondeoHorizontalMesh2);
+
+  // TODO: Añadir pinchos
+  /* for (let i = 0; i < 20; i++) {
+    const pincho = new THREE.CylinderGeometry(paloRadius * 0.2, 0, 0.5, 4);
+    const pinchoMesh = new THREE.Mesh(pincho, cactusMaterial);
+    const angulo = (Math.PI * 2 / 20) * i; // Distribuir los pinchos uniformemente
+    const distancia = paloRadius; // Distancia desde el centro del cactus
+    const altura = Math.random() * 2 + 1; // Altura aleatoria entre 1 y 3
+    
+    // Posicionamos los pinchos en la superficie del cactus
+    pinchoMesh.position.set(
+      Math.cos(angulo) * distancia,
+      altura,
+      Math.sin(angulo) * distancia
+    );
+    
+    // Rotamos los pinchos para que apunten horizontalmente hacia afuera
+    // Calculamos la orientación para que apunte desde el centro hacia afuera
+    pinchoMesh.lookAt(
+      -pinchoMesh.position.x * 2,  // Duplicamos la posición para que mire hacia afuera
+      pinchoMesh.position.y,      // Mantenemos la misma altura
+      -pinchoMesh.position.z * 2   // Duplicamos la posición para que mire hacia afuera
+    );
+    
+    // Rotación adicional para que el pincho esté horizontal
+    pinchoMesh.rotateX(Math.PI / 2);
+
+    cactusObject.add(pinchoMesh);
+  }*/
+
+  cactusObject.position.set(x, y, z);
+
+  return cactusObject
 }
 
 function loadScene() {
@@ -202,7 +260,7 @@ function loadScene() {
     // Cargar el modelo del barril y tambien cargamos los cactus
     // Los cargamos aquí para asegurarnos que se cargan después de cargar el heightmap porque si lo hacia después de esta función no se cargaban
     const loader = new THREE.GLTFLoader();
-    loader.load("/GPCProyecto/models/oil_barrel_low-poly/scene.gltf", function (gltf) {
+    loader.load(`${carpeta}/models/oil_barrel_low-poly/scene.gltf`, function (gltf) {
       const baseModel = gltf.scene;
       baseModel.scale.set(3, 3, 3);
 
@@ -238,11 +296,11 @@ function loadScene() {
 
     console.log("Heightmap cargado y listo para lectura");
   };
-  img.src = '/GPCProyecto/images/h.jpg';
+  img.src = `${carpeta}/images/h.jpg`;
 
   // Cargar heightmap
-  let disMap = new THREE.TextureLoader().setPath('/GPCProyecto/images/').load("h.jpg");
-  let sandTex = new THREE.TextureLoader().setPath('/GPCProyecto/images/').load("sand.jpg");
+  let disMap = new THREE.TextureLoader().setPath(`${carpeta}/images/`).load("h.jpg");
+  let sandTex = new THREE.TextureLoader().setPath(`${carpeta}/images/`).load("sand.jpg");
 
 
   disMap.wrapS = disMap.wrapT = THREE.RepeatWrapping;
@@ -408,7 +466,7 @@ function moveCar(delta) {
   if (!isAudioLoaded) {
       // NOTE: https://threejs.org/docs/#api/en/audio/Audio
       // NOTE: https://pixabay.com/es/sound-effects/motor-brake-sound-324220/
-      motorLoader.load('/GPCProyecto/audios/motor-brake-sound.mp3', function(buffer) {
+      motorLoader.load(`${carpeta}/audios/motor-brake-sound.mp3`, function(buffer) {
         motorSound.setBuffer(buffer);
         motorSound.setVolume(0.5); // Ajustar volumen según velocidad
         motorSound.setLoop(true); // El sonido se reproducirá en bucle
@@ -682,19 +740,17 @@ function checkOutOfBounds() {
 }
 
 // Función para pausar o reanudar la música ambiente
-function pauseSong(){
-  document.addEventListener("keydown", (event) => {
-    if (event.key.toLowerCase() === 'm') {
-      if(ambientSoundPlaying){
-        ambientSound.pause();
-        ambientSoundPlaying = false;
-      } else{
-        ambientSound.play();
-        ambientSoundPlaying = true;
-      }
-   }
-  })
-}
+document.addEventListener("keydown", (event) => {
+  if (event.key.toLowerCase() === 'm') {
+    if(ambientSoundPlaying){
+      ambientSound.pause();
+      ambientSoundPlaying = false;
+    } else{
+      ambientSound.play();
+      ambientSoundPlaying = true;
+    }
+  }
+})
 
 document.addEventListener("wheel", (event) => {
   // Hacer zoom moviendo la rueda del ratón
@@ -706,6 +762,19 @@ document.addEventListener("wheel", (event) => {
   camera.updateProjectionMatrix();
 });
 
+document.addEventListener("keydown", (event) => {
+  if (event.key.toLowerCase() === 'i') {
+    const div = document.getElementById('instrucciones');
+    if (div) {
+      if (div.style.display === 'none') {
+        div.style.display = 'block';
+      } else {
+        div.style.display = 'none';
+      }
+    }
+  }
+});
+
 function update() {
   moveCar(0.016); // asumiendo ~60fps, delta ~16ms
 
@@ -713,7 +782,6 @@ function update() {
   let terrainHeight = getHeightAt(movingCube.position.x, movingCube.position.z);
   movingCube.position.y = terrainHeight + 2.5;
   checkOutOfBounds();
-  pauseSong();
 
   // ajustar las ruedas a la altura del terreno
   let wheels = [wheel1, wheel2, wheel3, wheel4];
@@ -751,7 +819,7 @@ function update() {
       pickupInstance.setVolume(1);
       pickupInstance.play();
       } else {
-      bidonLoader.load('/GPCProyecto/audios/collectcoin.mp3', function(buffer) {
+      bidonLoader.load(`${carpeta}/audios/collectcoin.mp3`, function(buffer) {
         pickupSound.setBuffer(buffer);
         pickupSound.setVolume(1);
         pickupSound.play();
