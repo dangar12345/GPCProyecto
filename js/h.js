@@ -38,7 +38,7 @@ var isPlaying = false; // Variable para controlar si el audio ya está reproduci
 
 var ambientSoundPlaying = false; // Variable para poder saber si la música de fondo está sonando o no
 
-const carpeta = "";
+const carpeta = "/GPCProyecto";
 
 // 1-inicializa 
 init();
