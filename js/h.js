@@ -308,12 +308,14 @@ function loadScene() {
 
   // Material con mapa de desplazamiento
   // Creamos el terreno con la textura de arena y el heigtmap para crear las montañas del desierto
-  const groundMat = new THREE.MeshStandardMaterial({
+  const groundMat = new THREE.MeshPhongMaterial({
     map: sandTex,
     displacementMap: disMap,
     displacementScale: displacementScale,
-    metalness: 0.1,
-    roughness: 0.9
+    bumpMap: disMap,
+    bumpScale: 0.5,
+    shininess: 10,
+    specular: 0x333333
   });
 
   // Creamos el mesh del terreno
@@ -331,7 +333,7 @@ function loadScene() {
   // Rueda 1 del coche
   wheel1 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
-    new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
+    new THREE.MeshLambertMaterial({ color: 0x333333 })
   );
   wheel1.rotation.z = Math.PI / 2; // Rotamos para que la rueda esté en posición correcta
   wheel1.position.set(3, 1, 2);
@@ -340,7 +342,7 @@ function loadScene() {
   // Rueda 2 del coche
   wheel2 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
-    new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
+    new THREE.MeshLambertMaterial({ color: 0x333333 })
   );
   wheel2.rotation.z = Math.PI / 2;
   wheel2.position.set(-3, 1, 2);
@@ -350,7 +352,7 @@ function loadScene() {
   // Rueda 3 del coche
   wheel3 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
-    new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
+    new THREE.MeshLambertMaterial({ color: 0x333333 })
   );
   wheel3.rotation.z = Math.PI / 2;
   wheel3.position.set(3, 1, -2);
@@ -359,7 +361,7 @@ function loadScene() {
   // Rueda 4 del coche
   wheel4 = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 24),
-    new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
+    new THREE.MeshLambertMaterial({ color: 0x333333 })
   );
   wheel4.rotation.z = Math.PI / 2;
   wheel4.position.set(-3, 1, -2);
