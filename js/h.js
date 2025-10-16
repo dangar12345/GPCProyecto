@@ -297,6 +297,7 @@ function loadScene() {
     console.log("Heightmap cargado y listo para lectura");
   };
 
+  // Cargamos imagenes distintas del heightmap dependiendo de la fecha actual
   const time = Date.now();
   let modulo = time % 3;
   img.src = `${carpeta}/images/h${modulo}.jpg`;
@@ -408,6 +409,48 @@ function loadScene() {
   movingCube.add(volante);
 
   scene.add(movingCube);
+  // NOTE: https://opengameart.org/content/sky-box-sunny-day
+  var textureLoader = new THREE.TextureLoader();
+
+  var cubeTextureLoader = new THREE.CubeTextureLoader();
+  var envMap = cubeTextureLoader.load([
+      `${carpeta}/images/Daylight/Daylight Box_Back.bmp`,
+      `${carpeta}/images/Daylight/Daylight Box_Left.bmp`,
+      `${carpeta}/images/Daylight/Daylight Box_Front.bmp`,
+      `${carpeta}/images/Daylight/Daylight Box_Right.bmp`,
+      `${carpeta}/images/Daylight/Daylight Box_Top.bmp`,
+      `${carpeta}/images/Daylight/Daylight Box_Bottom.bmp`,
+  ]);
+
+  var skyboxGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
+  var skyboxMaterials = [
+      new THREE.MeshBasicMaterial({ 
+          map: textureLoader.load(`${carpeta}/images/Daylight/Daylight Box_Right.bmp`), 
+          side: THREE.BackSide 
+      }),
+      new THREE.MeshBasicMaterial({ 
+          map: textureLoader.load(`${carpeta}/images/Daylight/Daylight Box_Left.bmp`), 
+          side: THREE.BackSide 
+      }),
+      new THREE.MeshBasicMaterial({ 
+          map: textureLoader.load(`${carpeta}/images/Daylight/Daylight Box_Top.bmp`), 
+          side: THREE.BackSide 
+      }),
+      new THREE.MeshBasicMaterial({ 
+          map: textureLoader.load(`${carpeta}/images/Daylight/Daylight Box_Bottom.bmp`), 
+          side: THREE.BackSide 
+      }),
+      new THREE.MeshBasicMaterial({ 
+          map: textureLoader.load(`${carpeta}/images/Daylight/Daylight Box_Front.bmp`), 
+          side: THREE.BackSide 
+      }),
+      new THREE.MeshBasicMaterial({ 
+          map: textureLoader.load(`${carpeta}/images/Daylight/Daylight Box_Back.bmp`), 
+          side: THREE.BackSide 
+      })
+  ];
+  var skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterials);
+  scene.add(skybox);
 }
 
 function updateAspectRatio() {
