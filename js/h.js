@@ -1,6 +1,6 @@
 var renderer, scene, camera;
 var cameraControls;
-var movingCube; // Coche
+var car; // Coche
 var heightMapImage = null;   // La imagen del heightmap
 var heightMapData = null;    // Datos de píxeles
 var heightMapWidth = 0;
@@ -14,6 +14,7 @@ var bidones = []; // Bidones de gasolina en la escena
 var total_bidones = 20 // Total de bidones a generar para el videojuego
 var total_cactus = 100 // Total de cactus a generar para el videojuego
 var barraTrasera; // Barra trasera del coche
+var barraTrasera2; // Segunda barra trasera del coche
 var barraDiagonal; 
 var volante; // Volante del coche
 var loader; // Loader para cargar texturas
@@ -28,11 +29,13 @@ const listener = new THREE.AudioListener();
 const ambientSound = new THREE.Audio(listener);  // música de fondo
 const motorSound = new THREE.Audio(listener);    // motor del coche
 const pickupSound = new THREE.Audio(listener);   // sonido al recoger bidón
+const cactusSound = new THREE.Audio(listener);   // sonido al recoger cactus
 
 // Loaders para cada música
 const ambientLoader = new THREE.AudioLoader();
 const motorLoader = new THREE.AudioLoader();
 const bidonLoader = new THREE.AudioLoader();
+const cactusLoader = new THREE.AudioLoader();
 var isAudioLoaded = false; // Variable para controlar si el audio ya está cargado
 var isPlaying = false; // Variable para controlar si el audio ya está reproduciéndose
 
@@ -171,7 +174,7 @@ function createCactus(){
   const redondeoCactus = new THREE.SphereGeometry(paloRadius, 8, 8);
 
   // Material y malla del tronco
-  const paloMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
+  const paloMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, roughness: 0.8 });
   const paloMesh = new THREE.Mesh(troncoCactus, paloMaterial);
   paloMesh.position.set(0, 1.5, 0);
   paloMesh.castShadow = true;
@@ -179,7 +182,7 @@ function createCactus(){
   cactusObject.add(paloMesh);
 
   // Material y malla de la parte redondeada
-  const cactusMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, metalness: 0.2, roughness: 0.8 });
+  const cactusMaterial = new THREE.MeshStandardMaterial({ color: 0x006400, roughness: 0.8 });
   const cactusMesh = new THREE.Mesh(redondeoCactus, cactusMaterial);
   cactusMesh.position.set(0, 3, 0);
   cactusObject.add(cactusMesh);
@@ -329,10 +332,10 @@ function loadScene() {
   scene.add(groundMesh);
 
   // Creamos el coche
-  movingCube = new THREE.Object3D();
-  movingCube.castShadow = true;
-  movingCube.receiveShadow = true;
-  scene.add(movingCube);
+  car = new THREE.Object3D();
+  car.castShadow = true;
+  car.receiveShadow = true;
+  scene.add(car);
 
   // Rueda 1 del coche
   wheel1 = new THREE.Mesh(
@@ -341,7 +344,7 @@ function loadScene() {
   );
   wheel1.rotation.z = Math.PI / 2; // Rotamos para que la rueda esté en posición correcta
   wheel1.position.set(3, 1, 2);
-  movingCube.add(wheel1);
+  car.add(wheel1);
 
   // Rueda 2 del coche
   wheel2 = new THREE.Mesh(
@@ -351,7 +354,7 @@ function loadScene() {
   wheel2.rotation.z = Math.PI / 2;
   wheel2.position.set(-3, 1, 2);
 
-  movingCube.add(wheel2);
+  car.add(wheel2);
 
   // Rueda 3 del coche
   wheel3 = new THREE.Mesh(
@@ -360,7 +363,7 @@ function loadScene() {
   );
   wheel3.rotation.z = Math.PI / 2;
   wheel3.position.set(3, 1, -2);
-  movingCube.add(wheel3);
+  car.add(wheel3);
 
   // Rueda 4 del coche
   wheel4 = new THREE.Mesh(
@@ -369,58 +372,55 @@ function loadScene() {
   );
   wheel4.rotation.z = Math.PI / 2;
   wheel4.position.set(-3, 1, -2);
-  movingCube.add(wheel4);
+  car.add(wheel4);
 
-  movingCube.position.set(0, 10, 0)
+  car.position.set(0, 10, 0)
 
   // Barra trasera
   barraTrasera = new THREE.Mesh(
     new THREE.BoxGeometry(6, 0.3, 0.3),
-    new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.6, roughness: 0.4 })
+    new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.4 })
   );
   barraTrasera.position.set(0, 1, -2);
-  movingCube.add(barraTrasera);
+  car.add(barraTrasera);
+
+  barraTrasera2 = new THREE.Mesh(
+    new THREE.BoxGeometry(6, 0.3, 0.3),
+    new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.4 })
+  );
+  barraTrasera2.position.set(0, 1, 2);
+  car.add(barraTrasera2);
 
   // Bara derecha de las ruedas
   barraEnmedio1 = new THREE.Mesh(
     new THREE.BoxGeometry(0.3, 0.3, 4),
-    new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.6, roughness: 0.4 })
+    new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.4 })
   );
   barraEnmedio1.position.set(3, 0, 0);
-  movingCube.add(barraEnmedio1);
+  car.add(barraEnmedio1);
 
   // Barra izquierda de las ruedas
   barraEnmedio2 = new THREE.Mesh(
     new THREE.BoxGeometry(0.3, 0.3, 4),
-    new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.6, roughness: 0.4 })
+    new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.4 })
   );
   barraEnmedio2.position.set(-3, 0, 0);
-  movingCube.add(barraEnmedio2);
+  car.add(barraEnmedio2);
 
   // Volante
   volante = new THREE.Mesh(
     new THREE.CylinderGeometry(1, 1, 0.5, 12),
-    new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.5, roughness: 0.5 })
+    new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 })
   );
 
   volante.position.set(-0.5, -0.5, -2)
   volante.rotation.x = Math.PI / 2
   volante.rotation.z = -Math.PI / 20
-  movingCube.add(volante);
+  car.add(volante);
 
-  scene.add(movingCube);
+  scene.add(car);
   // NOTE: https://opengameart.org/content/sky-box-sunny-day
-  var textureLoader = new THREE.TextureLoader();
-
-  var cubeTextureLoader = new THREE.CubeTextureLoader();
-  var envMap = cubeTextureLoader.load([
-      `${carpeta}/images/Daylight/Daylight Box_Back.bmp`,
-      `${carpeta}/images/Daylight/Daylight Box_Left.bmp`,
-      `${carpeta}/images/Daylight/Daylight Box_Front.bmp`,
-      `${carpeta}/images/Daylight/Daylight Box_Right.bmp`,
-      `${carpeta}/images/Daylight/Daylight Box_Top.bmp`,
-      `${carpeta}/images/Daylight/Daylight Box_Bottom.bmp`,
-  ]);
+  var textureLoader = new THREE.TextureLoader();  
 
   var skyboxGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
   var skyboxMaterials = [
@@ -461,9 +461,9 @@ function updateAspectRatio() {
 
 // Actualizar minimapa de acuerdo a la posición del coche
 function updateMinimap() {
-  minimapa.position.x = movingCube.position.x;
-  minimapa.position.z = movingCube.position.z;
-  minimapa.lookAt(movingCube.position.x, 0, movingCube.position.z);
+  minimapa.position.x = car.position.x;
+  minimapa.position.z = car.position.z;
+  minimapa.lookAt(car.position.x, 0, car.position.z);
 }
 
 function getHeightAt(x, z) {
@@ -506,8 +506,8 @@ function moveCar(delta) {
   const rotateSpeed = Math.PI; // rotación de las ruedas
   
   // guardamos para el coche la velocidad actual
-  if (!movingCube.userData.velocity) {
-    movingCube.userData.velocity = 0;
+  if (!car.userData.velocity) {
+    car.userData.velocity = 0;
     // Manejar el audio del motor
   }
 
@@ -522,10 +522,10 @@ function moveCar(delta) {
       });
     }
     
-    if (Math.abs(movingCube.userData.velocity) > 0.1) {
+    if (Math.abs(car.userData.velocity) > 0.1) {
       if (isAudioLoaded && !isPlaying) {
         motorSound.play();
-        motorSound.setVolume(0.5 + Math.min(Math.abs(movingCube.userData.velocity) / maxSpeed, 1) * 0.5); // Ajustar volumen según velocidad
+        motorSound.setVolume(0.5 + Math.min(Math.abs(car.userData.velocity) / maxSpeed, 1) * 0.5); // Ajustar volumen según velocidad
         isPlaying = true;
       }
     } else {
@@ -535,7 +535,7 @@ function moveCar(delta) {
       }
     }
   
-  let currentVelocity = movingCube.userData.velocity;
+  let currentVelocity = car.userData.velocity;
   let targetVelocity = 0;
   
   // Calculamos la velocidad a la que debería ir el coche
@@ -562,11 +562,11 @@ function moveCar(delta) {
   }
   
   // Almacenamos la nueva velocidad
-  movingCube.userData.velocity = currentVelocity;
+  car.userData.velocity = currentVelocity;
   
   // Movemos el coche
   if (Math.abs(currentVelocity) > 0.01) {
-    movingCube.translateZ(currentVelocity * delta);
+    car.translateZ(currentVelocity * delta);
   }
   let anguloGiro = 0
   const maxRotation = Math.PI / 3; // 30 grados
@@ -576,9 +576,9 @@ function moveCar(delta) {
     volante.rotation.y = Math.min(volante.rotation.y + rotateSpeed * delta, maxRotation);
 
     if(keyMaps['s'] || keyMaps['arrowdown']){
-      movingCube.rotation.y += -rotateSpeed * delta;
+      car.rotation.y += -rotateSpeed * delta;
     } else{
-      movingCube.rotation.y += rotateSpeed * delta;
+      car.rotation.y += rotateSpeed * delta;
     }
     anguloGiro = Math.PI / 6;
 
@@ -587,9 +587,9 @@ function moveCar(delta) {
   if (keyMaps['d'] || keyMaps['arrowright']) {
     volante.rotation.y = Math.max(volante.rotation.y - rotateSpeed * delta, -maxRotation);
     if(keyMaps['s'] || keyMaps['arrowdown']){
-      movingCube.rotation.y -= -rotateSpeed * delta;
+      car.rotation.y -= -rotateSpeed * delta;
     } else{
-      movingCube.rotation.y -= rotateSpeed * delta;
+      car.rotation.y -= rotateSpeed * delta;
     }
     anguloGiro = -Math.PI / 6;
 
@@ -780,10 +780,10 @@ function displaySuccess() {
 // Si se ha salido, devuelvo el coche al centro del terreno
 function checkOutOfBounds() {
   const limit = 200 + 20; // límite del terreno
-  if (Math.abs(movingCube.position.x) > limit || Math.abs(movingCube.position.z) > limit) {
+  if (Math.abs(car.position.x) > limit || Math.abs(car.position.z) > limit) {
     // Si el coche sale del terreno, lo devolvemos al centro
-    movingCube.position.set(0, getHeightAt(0, 0) + 2.5, 0);
-    movingCube.userData.velocity = 0; // parar el coche
+    car.position.set(0, getHeightAt(0, 0) + 2.5, 0);
+    car.userData.velocity = 0; // parar el coche
   }
 }
 
@@ -797,6 +797,17 @@ document.addEventListener("keydown", (event) => {
       ambientSound.play();
       ambientSoundPlaying = true;
     }
+  }
+})
+
+// godmode
+document.addEventListener("keydown", (event) => {
+  if (event.key.toLowerCase() === 'z') {
+    gasolina = 5;
+  }
+
+  if (event.key.toLowerCase() === 'x') {
+    bidones = [];
   }
 })
 
@@ -827,8 +838,8 @@ function update() {
   moveCar(0.016); // asumiendo ~60fps, delta ~16ms
 
   // obtener altura del coche sobre el terreno
-  let terrainHeight = getHeightAt(movingCube.position.x, movingCube.position.z);
-  movingCube.position.y = terrainHeight + 2.5;
+  let terrainHeight = getHeightAt(car.position.x, car.position.z);
+  car.position.y = terrainHeight + 2.5;
   checkOutOfBounds();
 
   // ajustar las ruedas a la altura del terreno
@@ -854,7 +865,7 @@ function update() {
   // Comprobar intersecciones con el resto de bidones
   // NOTE: https://threejs.org/docs/index.html#api/en/math/Box3.intersectsBox
   // NOTE: https://stackoverflow.com/questions/66032362/using-intersect-intersectsbox-for-object-collision-threejs
-  let carBox = new THREE.Box3().setFromObject(movingCube);
+  let carBox = new THREE.Box3().setFromObject(car);
 
   // filtramos bidones que colisionan con el coche y si colisionan los eliminamos de la escena y de la lista de bidones
   bidones = bidones.filter((bidon) => {
@@ -862,10 +873,11 @@ function update() {
 
     if (carBox.intersectsBox(bidonBox)) {
       if (pickupSound.buffer) {
-      const pickupInstance = new THREE.Audio(listener);
-      pickupInstance.setBuffer(pickupSound.buffer);
-      pickupInstance.setVolume(1);
-      pickupInstance.play();
+        // Reproducir sonido si tambien hay otro sonido sonando
+        const pickupInstance = new THREE.Audio(listener);
+        pickupInstance.setBuffer(pickupSound.buffer);
+        pickupInstance.setVolume(1);
+        pickupInstance.play();
       } else {
       bidonLoader.load(`${carpeta}/audios/collectcoin.mp3`, function(buffer) {
         pickupSound.setBuffer(buffer);
@@ -889,6 +901,19 @@ function update() {
       gasolina -= 10;
       gasolina = Math.max(0, gasolina);
       scene.remove(c);
+      if (cactusSound.buffer) {
+        const cactusInstance = new THREE.Audio(listener);
+        cactusInstance.setBuffer(cactusSound.buffer);
+        cactusInstance.setVolume(1);
+        cactusInstance.play();
+      } else {
+        cactusLoader.load(`${carpeta}/audios/car-crash-sound.mp3`, function(buffer) {
+          cactusSound.setBuffer(buffer);
+          cactusSound.setVolume(1);
+          cactusSound.play();
+        });
+      }
+      car.userData.velocity = -car.userData.velocity / 2; // rebotar el coche
       return false;
     }
     return true;
@@ -909,17 +934,18 @@ function update() {
   
   // Actualizar la posición de la cámara para que siga al coche
   let offset = carCameraOffset.clone();
-  offset.applyQuaternion(movingCube.quaternion);
+  offset.applyQuaternion(car.quaternion);
 
-  camera.position.copy(movingCube.position).add(offset);
+  camera.position.copy(car.position).add(offset);
 
   let direction = new THREE.Vector3(0, 0, -1);
-  direction.applyQuaternion(movingCube.quaternion);
-  let lookTarget = movingCube.position.clone().add(direction.multiplyScalar(5));
+  direction.applyQuaternion(car.quaternion);
+  let lookTarget = car.position.clone().add(direction.multiplyScalar(5));
 
   camera.lookAt(lookTarget);
   // Actualizar las barras del coche
   updateBarra(barraTrasera, wheel3, wheel4);
+  updateBarra(barraTrasera2, wheel1, wheel2);
   updateBarraEnmedio(barraEnmedio1, wheel1, wheel3);
   updateBarraEnmedio(barraEnmedio2, wheel2, wheel4);
 

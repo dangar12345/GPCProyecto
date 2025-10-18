@@ -255,8 +255,16 @@ function animarRobot() {
 
   // Función de animación
   function animate() {
-    // Si completamos la animación, detenemos
+    // Si completamos la animación, detenemos y volvemos a la posición original
     if (animationStep >= totalSteps) {
+      // Restauramos los valores iniciales
+      params.baseY = initialBaseY;
+      params.ejeZ = initialEjeZ;
+      params.rotulaY = initialRotulaY;
+      params.rotulaZ = initialRotulaZ;
+      params.manoZ = initialManoZ;
+      params.pinzaOpen = initialPinzaOpen;
+      
       animating = false;
       animationStep = 0;
       return;
@@ -289,12 +297,8 @@ function update()
   // Actualiza camara
   cameraControls.update();
 
-  // ---- MOVIMIENTO sobre el plano (flechas o WASD) ----
-  // usamos params.speed
   var v = params.speed;
 
-  // flechas: arrowup, arrowdown, arrowleft, arrowright
-  // también soporte WASD (w/a/s/d)
   var forward = keymap['arrowup'] || keymap['w'];
   var backward = keymap['arrowdown'] || keymap['s'];
   var left = keymap['arrowleft'] || keymap['a'];
@@ -313,35 +317,22 @@ function update()
   if (right) {
     robot.position.x += v;
   }
-  // Si prefieres que WASD haga strafe, puedes adaptar aquí.
 
-  // ---- APLICAR VALORES GUI A LAS PIEZAS ----
-  // base Y desde params (sobreescribe pequeñas rotaciones si el usuario mueve slider)
   base.rotation.y = degToRad(params.baseY);
 
-  // eje Z (la "pieza eje" que está en brazo)
   eje.rotation.z = degToRad(params.ejeZ);
 
-  // Rotula controla orientación del antebrazo: aplicamos rotula.rotation y antebrazo.rotación relativa
   rotula.rotation.y = degToRad(params.rotulaY);
   rotula.rotation.z = degToRad(params.rotulaZ);
 
-  // Para que el antebrazo tome esos ejes visualmente, podemos aplicar las rotaciones al antebrazo
-  // (dependiendo de cómo quieras que rote exactamente, puedes aplicar a rotula o a antebrazo)
   antebrazo.rotation.y = degToRad(params.rotulaY);
   antebrazo.rotation.z = degToRad(params.rotulaZ);
 
-  // Mano: rotación Z
   mano.rotation.z = degToRad(params.manoZ);
 
-  // Apertura pinza: movemos las pinzas en X
-  // ponemos pinzaIzq a la izquierda (negativo) y pinzaDer a la derecha (positivo)
   var open = params.pinzaOpen;
   pinzaIzq.position.z = - open * 0.5;
   pinzaDer.position.z = open * 0.5;
-
-  // si cambias wireframe desde GUI, ya lo aplicamos via onChange; por si acaso:
-  // setMaterialWireframe(scene, params.wireframe);
 }
 
 function render()
