@@ -129,7 +129,7 @@ function loadScene(){
 
     // nervios
     for(let i = 0; i < 4; i++){
-        let nervio = new THREE.Mesh(new THREE.BoxGeometry(0.4, 8, 0.3), new THREE.MeshBasicMaterial({ color: 0x0000FF }));
+        let nervio = new THREE.Mesh(new THREE.BoxGeometry(0.4, 7.6, 0.3), new THREE.MeshBasicMaterial({ color: 0x0000FF }));
         nervio.position.y = 3.5; // relativo al antebrazo
         let angle = i * Math.PI/2 + Math.PI/4;
         nervio.position.x = Math.cos(angle) * 1.5;
