@@ -470,7 +470,7 @@ function getHeightAt(x, z) {
   if (!heightMapData) return 0; // el mapa no está cargado aún
   const terrainSize = 400; // tamaño del plano en unidades
   // Convertimos x,z a coordenadas UV [0, 1]
-  let u = (x + terrainSize/2) / terrainSize;  // mapea -100..100 → 0..1
+  let u = (x + terrainSize/2) / terrainSize;  // mapea -200..200 → 0..1
   let v = (z + terrainSize/2) / terrainSize;  // igual para z
 
   // Convertimos UV a coordenadas de píxel en la imagen
@@ -508,7 +508,6 @@ function moveCar(delta) {
   // guardamos para el coche la velocidad actual
   if (!car.userData.velocity) {
     car.userData.velocity = 0;
-    // Manejar el audio del motor
   }
 
   if (!isAudioLoaded) {
