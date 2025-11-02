@@ -163,7 +163,7 @@ function createCactus(){
   if (intentos >= numeroIntentos) {
     console.log("No se pudo encontrar una posición adecuada para un cactus después de varios intentos");
   }
-  y -= 0.2 // para que se hunda un poco en el suelo porque aveces parece que flota
+  y -= 0.3 // para que se hunda un poco en el suelo porque aveces parece que flota
 
   const cactusObject = new THREE.Object3D();
 
@@ -206,34 +206,13 @@ function createCactus(){
   redondeoHorizontalMesh2.position.set(-1.25, 2, 0); // Posición en el extremo izquierdo
   cactusObject.add(redondeoHorizontalMesh2);
 
-  // TODO: Añadir pinchos
-  /* for (let i = 0; i < 20; i++) {
-    const pincho = new THREE.CylinderGeometry(paloRadius * 0.2, 0, 0.5, 4);
-    const pinchoMesh = new THREE.Mesh(pincho, cactusMaterial);
-    const angulo = (Math.PI * 2 / 20) * i; // Distribuir los pinchos uniformemente
-    const distancia = paloRadius; // Distancia desde el centro del cactus
-    const altura = Math.random() * 2 + 1; // Altura aleatoria entre 1 y 3
-    
-    // Posicionamos los pinchos en la superficie del cactus
-    pinchoMesh.position.set(
-      Math.cos(angulo) * distancia,
-      altura,
-      Math.sin(angulo) * distancia
-    );
-    
-    // Rotamos los pinchos para que apunten horizontalmente hacia afuera
-    // Calculamos la orientación para que apunte desde el centro hacia afuera
-    pinchoMesh.lookAt(
-      -pinchoMesh.position.x * 2,  // Duplicamos la posición para que mire hacia afuera
-      pinchoMesh.position.y,      // Mantenemos la misma altura
-      -pinchoMesh.position.z * 2   // Duplicamos la posición para que mire hacia afuera
-    );
-    
-    // Rotación adicional para que el pincho esté horizontal
-    pinchoMesh.rotateX(Math.PI / 2);
+  // Variaciones pedidas para que cada cactus sea diferente
+  const scaleAleatorio = 0.8 + Math.random() * 0.8;
+  const alturaAleatoria = scaleAleatorio + Math.random() * 0.5;
+  cactusObject.scale.set(scaleAleatorio, alturaAleatoria, scaleAleatorio);
+  
+  cactusObject.rotation.y = Math.random() * Math.PI * 2;
 
-    cactusObject.add(pinchoMesh);
-  }*/
 
   cactusObject.position.set(x, y, z);
 
